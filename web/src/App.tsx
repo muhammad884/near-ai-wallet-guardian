@@ -5,6 +5,7 @@ import { nav } from './nav'
 import { Dashboard, Placeholder } from './pages'
 import { Limits } from './limits'
 import { Scanner } from './scanner/page'
+import { Agents } from './agents/page'
 
 export default function App() {
   const [open, setOpen] = useState(false)
@@ -36,7 +37,8 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/limits" element={<Limits />} />
           <Route path="/scanner" element={<Scanner />} />
-          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner').map((i) => (
+          <Route path="/agents" element={<Agents />} />
+          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner' && i.path !== '/agents').map((i) => (
             <Route key={i.path} path={i.path} element={<Placeholder item={i} />} />
           ))}
         </Routes>
