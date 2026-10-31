@@ -4,6 +4,7 @@ import { Menu, ShieldCheck, X } from 'lucide-react'
 import { nav } from './nav'
 import { Dashboard, Placeholder } from './pages'
 import { Limits } from './limits'
+import { Scanner } from './scanner/page'
 
 export default function App() {
   const [open, setOpen] = useState(false)
@@ -34,7 +35,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/limits" element={<Limits />} />
-          {nav.filter((i) => i.path !== '/' && i.path !== '/limits').map((i) => (
+          <Route path="/scanner" element={<Scanner />} />
+          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner').map((i) => (
             <Route key={i.path} path={i.path} element={<Placeholder item={i} />} />
           ))}
         </Routes>
