@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from 'react-router-dom'
 import { Menu, ShieldCheck, X } from 'lucide-react'
 import { nav } from './nav'
 import { Dashboard, Placeholder } from './pages'
+import { Limits } from './limits'
 
 export default function App() {
   const [open, setOpen] = useState(false)
@@ -32,7 +33,8 @@ export default function App() {
       <main className="content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          {nav.filter((i) => i.path !== '/').map((i) => (
+          <Route path="/limits" element={<Limits />} />
+          {nav.filter((i) => i.path !== '/' && i.path !== '/limits').map((i) => (
             <Route key={i.path} path={i.path} element={<Placeholder item={i} />} />
           ))}
         </Routes>

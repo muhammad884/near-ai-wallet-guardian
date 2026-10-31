@@ -70,3 +70,13 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
   .content { margin-left: 270px; margin-right: auto; }
   .grid { grid-template-columns: repeat(4, 1fr); }
 }
+.field {
+  display: block; width: 100%; margin: 6px 0 14px; padding: 10px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; font-size: 16px;
+}
+.btn {
+  display: block; width: 100%; margin-top: 14px; padding: 12px;
+  background: var(--accent); color: #04130d; font-weight: 600;
+  border: 0; border-radius: 8px; font-size: 16px;
+}
