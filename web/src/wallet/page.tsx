@@ -1,3 +1,4 @@
+import './polyfill'
 import '@near-wallet-selector/modal-ui/styles.css'
 import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
 import {
