@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { evaluate } from './policy/engine'
+import { evaluateAndLog } from './log/logged'
 import type { Policy, Result, Usage } from './policy/types'
 
 const policy: Policy = {
@@ -23,7 +23,7 @@ export function Limits() {
 
   function check() {
     setResult(
-      evaluate(
+      evaluateAndLog(
         policy,
         enabled,
         {

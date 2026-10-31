@@ -6,6 +6,7 @@ import { Dashboard, Placeholder } from './pages'
 import { Limits } from './limits'
 import { Scanner } from './scanner/page'
 import { Agents } from './agents/page'
+import { Alerts, History } from './log/page'
 import { Boundary } from './boundary'
 
 const WalletPage = lazy(() => import('./wallet/page'))
@@ -41,8 +42,10 @@ export default function App() {
           <Route path="/limits" element={<Limits />} />
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/agents" element={<Agents />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/history" element={<History />} />
           <Route path="/wallet" element={<Boundary><Suspense fallback={<p className="muted">Loading...</p>}><WalletPage /></Suspense></Boundary>} />
-          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner' && i.path !== '/agents' && i.path !== '/wallet').map((i) => (
+          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner' && i.path !== '/agents' && i.path !== '/wallet' && i.path !== '/alerts' && i.path !== '/history').map((i) => (
             <Route key={i.path} path={i.path} element={<Placeholder item={i} />} />
           ))}
         </Routes>

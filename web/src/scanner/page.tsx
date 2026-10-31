@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { scan } from './risk'
+import { scanAndLog } from '../log/scanlogged'
 import type { ScanResult } from './risk'
 import type { Policy, Usage } from '../policy/types'
 
@@ -24,7 +24,7 @@ export function Scanner() {
 
   function run() {
     setResult(
-      scan(
+      scanAndLog(
         policy,
         true,
         {
