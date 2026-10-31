@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { Menu, ShieldCheck, X } from 'lucide-react'
 import { nav } from './nav'
@@ -6,6 +6,9 @@ import { Dashboard, Placeholder } from './pages'
 import { Limits } from './limits'
 import { Scanner } from './scanner/page'
 import { Agents } from './agents/page'
+import { Boundary } from './boundary'
+
+const WalletPage = lazy(() => import('./wallet/page'))
 
 export default function App() {
   const [open, setOpen] = useState(false)
@@ -38,7 +41,8 @@ export default function App() {
           <Route path="/limits" element={<Limits />} />
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/agents" element={<Agents />} />
-          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner' && i.path !== '/agents').map((i) => (
+          <Route path="/wallet" element={<Boundary><Suspense fallback={<p className="muted">Loading...</p>}><WalletPage /></Suspense></Boundary>} />
+          {nav.filter((i) => i.path !== '/' && i.path !== '/limits' && i.path !== '/scanner' && i.path !== '/agents' && i.path !== '/wallet').map((i) => (
             <Route key={i.path} path={i.path} element={<Placeholder item={i} />} />
           ))}
         </Routes>
