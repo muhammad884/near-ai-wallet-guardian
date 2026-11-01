@@ -84,3 +84,21 @@ private key.
 ## Network
 
 Testnet only. Do not use an account that holds real funds.
+## Enforced by NEAR vs shown by this app
+
+This app does not create, add or remove any access keys today. The table
+shows who would enforce each rule.
+
+| Rule | Who enforces it |
+| --- | --- |
+| An agent can call only one contract | The NEAR protocol, if the agent holds a function-call key. Not built in this app yet. |
+| An agent can call only listed methods | The NEAR protocol, same condition. |
+| An agent cannot attach NEAR to a call | The NEAR protocol, same condition. |
+| Per-transaction and daily NEAR limits | This app only. It shows a decision and does not stop anything on chain. |
+| Risk scores and scam signals | This app only. Advice, not proof. |
+
+Source for the first three rows: the NEAR access keys documentation
+(docs.near.org, Access Keys page). Whether a contract of our own is
+needed to enforce NEAR limits is our own design idea, not something
+the documentation states.
+
