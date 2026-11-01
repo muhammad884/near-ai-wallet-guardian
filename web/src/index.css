@@ -44,7 +44,7 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
   padding: 11px 12px; border-radius: 8px;
   color: var(--muted); text-decoration: none; font-size: 15px;
 }
-.link.active { background: #1b2740; color: var(--accent); }
+.link.active { background: var(--active-bg); color: var(--accent); }
 .content { padding: 20px 16px 60px; max-width: 980px; margin: 0 auto; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
 .card {
@@ -54,7 +54,7 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
 .big { font-size: 20px; font-weight: 600; margin-top: 6px; }
 .tag-demo {
   display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px;
-  background: #3a2f12; color: var(--warn); margin-bottom: 10px;
+  background: var(--tag-bg); color: var(--warn); margin-bottom: 10px;
 }
 .row {
   display: flex; justify-content: space-between; gap: 10px;
@@ -79,4 +79,15 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
   display: block; width: 100%; margin-top: 14px; padding: 12px;
   background: var(--accent); color: #04130d; font-weight: 600;
   border: 0; border-radius: 8px; font-size: 16px;
+}
+
+:root { --active-bg: #1b2740; --tag-bg: #3a2f12; color-scheme: dark; }
+:root[data-theme="light"] {
+  --bg: #f4f6fa; --card: #ffffff; --border: #d5dbe6; --text: #101828;
+  --muted: #5b6b84; --accent: #0e9f6e; --warn: #9a6700; --danger: #d92d4a;
+  --active-bg: #e3f4ee; --tag-bg: #fdf1d6; color-scheme: light;
+}
+.theme-btn {
+  background: none; border: 0; color: var(--text); padding: 6px;
+  margin-left: 6px; cursor: pointer;
 }
