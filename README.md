@@ -127,3 +127,14 @@ We have not checked whether our own code can reach the vulnerable code.
 Our code never asks for or stores a seed phrase or private key and never
 signs anything itself, but that does not prove the risk is zero.
 
+## Tests
+
+Run all automated tests from the web folder (43 tests at the time of
+writing: policy engine, scanner, agents, scam rules):
+
+    cd web
+    node --test tests/*.test.ts
+
+These tests check the rules in code. They do not test the wallet sign-in,
+which we checked by hand, and they do not test anything on the blockchain.
+
