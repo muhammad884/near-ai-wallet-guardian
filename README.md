@@ -4,7 +4,7 @@ A security layer for NEAR Protocol that sits between a user, their AI
 agents and their transactions. Built for the NEAR hackathon, AI Security
 & Defense track.
 
-Live demo: add your Vercel link here.
+Live demo: https://near-ai-wallet-guardian.vercel.app
 
 ## Status: what is real and what is not
 
