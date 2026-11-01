@@ -13,15 +13,15 @@ every part.
 
 | Part | Status |
 | --- | --- |
-| Policy engine (limits, allowed contracts and methods) | Works. Pure code, 12 automated tests. |
+| Policy engine (limits, allowed contracts and methods) | Works. Pure code, 12 automated tests. The Spending Limits page lets you edit the policy (its input checks have 8 tests). Decisions are app-level only. |
 | Transaction Scanner (0-100 score with visible rules) | Works. Pure code, 10 automated tests. |
 | AI Agents page (validated agent profiles) | Works in the browser only. 10 automated tests. |
 | Activity History and Security Alerts | Works. Kept in memory, cleared on refresh. |
 | Wallet page (NEAR Wallet Selector, Meteor, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet. It shows the account ID only. Other pages do not use the account yet. |
-| Dashboard | Real counts from this session's decision log. Active agents is not linked yet. |
+| Dashboard | Real counts from this session's decision log, the number of enabled agent profiles, and the wallet status as last seen on Wallet Security. |
 | Scam Detector (rules on the spelling of an account name) | Works, 11 automated tests. Reads nothing from the blockchain, uses no AI model, and cannot prove an account is safe or a scam. |
 | Permissions | Explains who enforces each rule. Creates and changes no keys. |
-| Settings | Not built yet. |
+| Settings | Light or dark theme (saved in the browser) and clearing the decision history. |
 | AI model | Not used anywhere yet. |
 | On-chain enforcement | Not built yet. See below. |
 
@@ -74,8 +74,9 @@ private key.
 
 - The wallet picker can be hidden in a narrow phone layout. Switching the
   browser to desktop site shows it.
-- The policy values and today's spending on the Spending Limits and
-  Scanner pages are fixed demo values.
+- Today's spending (12 NEAR) is a fixed demo value on the Spending
+  Limits and Scanner pages, and the Scanner uses a fixed demo policy.
+  Only the Spending Limits page lets you edit the policy.
 - Agents and the activity log live in memory and are lost on refresh.
 - The Scanner only looks at what you type. It does not read the
   blockchain, and a low score does not prove a transaction is safe.
@@ -129,8 +130,8 @@ signs anything itself, but that does not prove the risk is zero.
 
 ## Tests
 
-Run all automated tests from the web folder (43 tests at the time of
-writing: policy engine, scanner, agents, scam rules):
+Run all automated tests from the web folder (57 tests at the time of
+writing: policy engine, scanner, agents, scam rules, key parsing, policy settings):
 
     cd web
     node --test tests/*.test.ts
