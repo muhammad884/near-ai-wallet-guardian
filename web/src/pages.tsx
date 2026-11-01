@@ -1,25 +1,24 @@
 import type { NavItem } from './nav'
-
-const stats = [
-  { label: 'Wallet', value: 'Not connected' },
-  { label: 'Active agents', value: '2' },
-  { label: 'Pending approvals', value: '1' },
-  { label: 'Blocked today', value: '3' },
-]
-
-const events = [
-  { text: 'Agent "Trader-1" tried 40 NEAR (limit 10)', result: 'BLOCKED', cls: 'bad' },
-  { text: 'Agent "Helper" asked to call a new contract', result: 'REQUIRES_APPROVAL', cls: 'mid' },
-  { text: 'Agent "Trader-1" sent 2 NEAR to a known account', result: 'APPROVED', cls: 'ok' },
-]
+import { useEvents } from './log/store'
 
 export function Dashboard() {
+  const events = useEvents()
+  const bad = events.filter((e) => e.tone === 'bad').length
+  const mid = events.filter((e) => e.tone === 'mid').length
+  const stats = [
+    { label: 'Decisions this session', value: String(events.length) },
+    { label: 'Blocked or high risk', value: String(bad) },
+    { label: 'Needs attention', value: String(mid) },
+    { label: 'Active agents', value: 'Not linked yet' },
+  ]
+  const recent = events.slice(0, 5)
+
   return (
     <div>
       <h1>Dashboard</h1>
       <p className="muted">
-        Every number on this page is DEMO DATA. No wallet is connected
-        and nothing here is read from the blockchain yet.
+        These numbers come from the decisions made in this browser tab and
+        reset when you refresh the page. No wallet data is read here yet.
       </p>
       <div className="grid">
         {stats.map((s) => (
@@ -29,13 +28,18 @@ export function Dashboard() {
           </div>
         ))}
       </div>
-      <h2>Recent security events</h2>
+      <h2>Recent decisions</h2>
       <div className="card">
-        <span className="tag-demo">DEMO DATA</span>
-        {events.map((e) => (
-          <div className="row" key={e.text}>
-            <span>{e.text}</span>
-            <strong className={e.cls}>{e.result}</strong>
+        {recent.length === 0 && (
+          <p className="muted">
+            Nothing yet. Run a check on Spending Limits, Transaction Scanner
+            or Scam Detector.
+          </p>
+        )}
+        {recent.map((e) => (
+          <div className="row" key={e.id}>
+            <span>{e.source}: {e.summary}</span>
+            <strong className={e.tone}>{e.outcome}</strong>
           </div>
         ))}
       </div>
