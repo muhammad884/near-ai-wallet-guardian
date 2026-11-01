@@ -57,7 +57,7 @@ export function KeyAuditCard({ account }: { account: string }) {
 
   return (
     <div>
-      <h2>Keys on this account (read-only)</h2>
+      <h2 style={{ fontSize: 17, margin: '24px 0 10px' }}>Keys on this account (read-only)</h2>
       <div className="card">
         <span className="tag-demo">LIVE FROM TESTNET RPC</span>
         {loading && <p className="muted">Loading...</p>}
@@ -88,7 +88,7 @@ export function KeyAuditCard({ account }: { account: string }) {
             ))}
           </div>
         )}
-        <p className="muted">
+        <p className="muted" style={{ fontSize: 14 }}>
           Read-only. This app does not add, remove or change any key. Your
           own full-access key is normal. The risk is giving one to an agent.
         </p>

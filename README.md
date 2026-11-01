@@ -17,7 +17,7 @@ every part.
 | Transaction Scanner (0-100 score with visible rules) | Works. Pure code, 10 automated tests. |
 | AI Agents page (validated agent profiles) | Works in the browser only. 10 automated tests. |
 | Activity History and Security Alerts | Works. Kept in memory, cleared on refresh. |
-| Wallet page (NEAR Wallet Selector, Meteor, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet. It shows the account ID only. Other pages do not use the account yet. |
+| Wallet page (NEAR Wallet Selector, Meteor, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet. It shows the account ID and a read-only list of the account's access keys from the testnet RPC (checked by hand: our test account has 1 full-access key and 0 function-call keys). The Dashboard shows the wallet status as last seen on this page. |
 | Dashboard | Real counts from this session's decision log, the number of enabled agent profiles, and the wallet status as last seen on Wallet Security. |
 | Scam Detector (rules on the spelling of an account name) | Works, 11 automated tests. Reads nothing from the blockchain, uses no AI model, and cannot prove an account is safe or a scam. |
 | Permissions | Explains who enforces each rule. Creates and changes no keys. |
