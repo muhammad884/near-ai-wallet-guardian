@@ -18,7 +18,7 @@ function Inner() {
       <h1>Wallet Security</h1>
       <p className="muted">
         Connects a NEAR wallet on TESTNET only. This app never asks for
-        your seed phrase or private key.
+        your seed phrase or private key. If the wallet list is hidden on your phone, switch the browser to Desktop site.
       </p>
       <div className="card" style={{ marginTop: 16 }}>
         <span className="tag-demo">TESTNET</span>
