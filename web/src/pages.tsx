@@ -1,15 +1,17 @@
 import type { NavItem } from './nav'
 import { useEvents } from './log/store'
+import { useAgents } from './agents/store'
 
 export function Dashboard() {
   const events = useEvents()
+  const agents = useAgents()
   const bad = events.filter((e) => e.tone === 'bad').length
   const mid = events.filter((e) => e.tone === 'mid').length
   const stats = [
     { label: 'Decisions this session', value: String(events.length) },
     { label: 'Blocked or high risk', value: String(bad) },
     { label: 'Needs attention', value: String(mid) },
-    { label: 'Active agents', value: 'Not linked yet' },
+    { label: 'Active agents', value: String(agents.filter((a) => a.enabled).length) },
   ]
   const recent = events.slice(0, 5)
 
@@ -18,7 +20,7 @@ export function Dashboard() {
       <h1>Dashboard</h1>
       <p className="muted">
         These numbers come from the decisions made in this browser tab and
-        reset when you refresh the page. No wallet data is read here yet.
+        reset when you refresh the page. Active agents counts the profiles registered on the AI Agents page, not connected software. No wallet data is read here.
       </p>
       <div className="grid">
         {stats.map((s) => (
@@ -38,7 +40,7 @@ export function Dashboard() {
         )}
         {recent.map((e) => (
           <div className="row" key={e.id}>
-            <span>{e.source}: {e.summary}</span>
+            <span>{e.source}: {e.summary}<br /><span className="muted">{e.time.slice(0, 19).replace('T', ' ')} UTC</span></span>
             <strong className={e.tone}>{e.outcome}</strong>
           </div>
         ))}

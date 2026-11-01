@@ -77,6 +77,7 @@ export function Limits() {
       {result && (
         <div className="card" style={{ marginTop: 12 }}>
           <div className={'big ' + cls}>{result.decision}</div>
+          <div className="muted">App-level decision only. Nothing was sent, and nothing was blocked on the blockchain.</div>
           {result.reasons.map((r) => (
             <div className="row" key={r}>{r}</div>
           ))}

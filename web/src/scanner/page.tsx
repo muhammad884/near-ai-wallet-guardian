@@ -71,7 +71,7 @@ export function Scanner() {
             {result.score}/100 · {result.level}
           </div>
           <div className="muted" style={{ margin: '6px 0 10px' }}>
-            Policy decision: {result.policy.decision}
+            Policy decision (app-level, nothing happens on chain): {result.policy.decision}
           </div>
           {result.findings.length === 0 && (
             <div className="row">No warning signs found in the information you entered.</div>

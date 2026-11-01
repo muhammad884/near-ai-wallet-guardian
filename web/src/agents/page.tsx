@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { makeAgent } from './model'
-import type { Agent } from './model'
+import { setAgents, useAgents } from './store'
 
 export function Agents() {
-  const [agents, setAgents] = useState<Agent[]>([])
+  const agents = useAgents()
   const [name, setName] = useState('')
   const [maxPerTx, setMaxPerTx] = useState('5')
   const [maxDaily, setMaxDaily] = useState('20')
