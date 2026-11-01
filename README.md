@@ -138,3 +138,39 @@ writing: policy engine, scanner, agents, scam rules):
 These tests check the rules in code. They do not test the wallet sign-in,
 which we checked by hand, and they do not test anything on the blockchain.
 
+## How to try it (judges)
+
+Open https://near-ai-wallet-guardian.vercel.app. On a phone, switch the
+browser to Desktop site. Do not refresh between steps: the log is kept in
+memory.
+
+1. Spending Limits: press Check transaction (Amount 2) and see APPROVED.
+   Change Amount to 7 and see REQUIRES_APPROVAL. Change it to 40 and see
+   BLOCKED with the reasons.
+2. Transaction Scanner: Amount 1, Method add_full_access_key, press Scan.
+   You see 90/100 CRITICAL with each rule listed.
+3. Scam Detector: check wrap.neer and see HIGH (it looks like wrap.near).
+   Check wrap.near and see NO SIGNS FOUND plus a list of what was not
+   checked.
+4. Activity History, Security Alerts and Dashboard: see the decisions
+   from the steps above.
+5. Wallet Security: press Connect wallet, choose Meteor Wallet with a
+   testnet account, and see Connected with the account ID. Disconnect
+   returns it to Not connected.
+6. Permissions: shows who enforces each rule.
+
+## Built with, and AI disclosure
+
+Track: AI Security & Defense.
+
+Libraries: React, TypeScript, Vite, react-router-dom, lucide-react, buffer
+(a browser polyfill) and the NEAR Wallet Selector packages (core,
+modal-ui, react-hook, meteor-wallet).
+
+AI assistance: the code in this repository was written with an AI coding
+assistant (Claude) and run and tested by hand by the author.
+
+Hackathon window: every commit in this repository is from 31 October 2026
+or later. This is a new project and it does not reuse code from the
+author's other projects.
+
