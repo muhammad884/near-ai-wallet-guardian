@@ -6,6 +6,8 @@ import {
   useWalletSelector,
 } from '@near-wallet-selector/react-hook'
 import { KeyAuditCard } from './audit'
+import { useEffect } from 'react'
+import { setWalletAccount } from './state'
 
 const config = {
   network: 'testnet' as const,
@@ -14,6 +16,9 @@ const config = {
 
 function Inner() {
   const { signedAccountId, signIn, signOut } = useWalletSelector()
+  useEffect(() => {
+    if (signedAccountId) setWalletAccount(signedAccountId)
+  }, [signedAccountId])
   return (
     <div>
       <h1>Wallet Security</h1>
@@ -35,7 +40,10 @@ function Inner() {
           <strong>{signedAccountId ?? 'none'}</strong>
         </div>
         {signedAccountId ? (
-          <button className="btn" onClick={() => signOut()}>Disconnect</button>
+          <button className="btn" onClick={() => {
+            signOut()
+            setWalletAccount(null)
+          }}>Disconnect</button>
         ) : (
           <button className="btn" onClick={() => signIn()}>Connect wallet</button>
         )}
