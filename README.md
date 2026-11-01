@@ -19,7 +19,8 @@ every part.
 | Activity History and Security Alerts | Works. Kept in memory, cleared on refresh. |
 | Wallet page (NEAR Wallet Selector, Meteor, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet. It shows the account ID only. Other pages do not use the account yet. |
 | Dashboard | Demo data, clearly labelled. |
-| Permissions, Scam Detector, Settings | Not built yet. |
+| Scam Detector (rules on the spelling of an account name) | Works, 11 automated tests. Reads nothing from the blockchain, uses no AI model, and cannot prove an account is safe or a scam. |
+| Permissions, Settings | Not built yet. |
 | AI model | Not used anywhere yet. |
 | On-chain enforcement | Not built yet. See below. |
 
