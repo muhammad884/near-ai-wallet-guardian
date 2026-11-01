@@ -102,3 +102,27 @@ Source for the first three rows: the NEAR access keys documentation
 needed to enforce NEAR limits is our own design idea, not something
 the documentation states.
 
+## Dependency audit (not fixed)
+
+On 1 November 2026 we ran npm audit on production dependencies only
+(npm audit --omit=dev). It reported 19 vulnerabilities (14 low, 5 high).
+We have not fixed them. We read the first 40 lines of the report, not all
+of it, and we have not looked at the 12 or so warnings in development
+tools.
+
+What we saw:
+
+- decode-uri-component: denial of service on malformed input (high).
+- nanoid: can loop forever on some invalid size values (high).
+- elliptic: an advisory about a risky cryptographic implementation. We
+  have not read the details.
+
+All of them come in through the NEAR wallet packages and the Meteor
+wallet SDK. The only fix npm offers is a forced downgrade of
+meteor-wallet to 9.3.0. That is a breaking change and could break the
+sign-in we tested by hand, so we did not apply it.
+
+We have not checked whether our own code can reach the vulnerable code.
+Our code never asks for or stores a seed phrase or private key and never
+signs anything itself, but that does not prove the risk is zero.
+
