@@ -17,7 +17,7 @@ every part.
 | Transaction Scanner (0-100 score with visible rules) | Works. Pure code, 10 automated tests. |
 | AI Agents page (validated agent profiles) | Works in the browser only. 10 automated tests. |
 | Activity History and Security Alerts | Works. Kept in memory, cleared on refresh. |
-| Wallet page (NEAR Wallet Selector, Meteor, testnet) | The page loads and the wallet picker opens. Sign-in has not been verified yet. |
+| Wallet page (NEAR Wallet Selector, Meteor, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet. It shows the account ID only. Other pages do not use the account yet. |
 | Dashboard | Demo data, clearly labelled. |
 | Permissions, Scam Detector, Settings | Not built yet. |
 | AI model | Not used anywhere yet. |
@@ -72,7 +72,6 @@ private key.
 
 - The wallet picker can be hidden in a narrow phone layout. Switching the
   browser to desktop site shows it.
-- Sign-in with a wallet is not verified yet.
 - The policy values and today's spending on the Spending Limits and
   Scanner pages are fixed demo values.
 - Agents and the activity log live in memory and are lost on refresh.
