@@ -93,3 +93,5 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
 }
 
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+.neutral { color: var(--muted); }

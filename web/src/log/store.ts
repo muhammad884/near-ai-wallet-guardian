@@ -6,7 +6,7 @@ export type LogEvent = {
   source: string
   summary: string
   outcome: string
-  tone: 'ok' | 'mid' | 'bad'
+  tone: 'ok' | 'mid' | 'bad' | 'neutral'
 }
 
 let events: LogEvent[] = []

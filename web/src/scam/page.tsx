@@ -16,7 +16,7 @@ export function ScamDetector() {
       summary: r.account,
       outcome: r.level,
       tone:
-        r.level === 'NO SIGNS FOUND' ? 'ok'
+        r.level === 'NO SIGNS FOUND' ? 'neutral'
         : r.level === 'HIGH' ? 'bad'
         : 'mid',
     })

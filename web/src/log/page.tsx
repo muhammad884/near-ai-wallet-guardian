@@ -2,7 +2,7 @@ import { clearEvents, useEvents } from './store'
 
 function List({ onlyRisky }: { onlyRisky: boolean }) {
   const all = useEvents()
-  const events = onlyRisky ? all.filter((e) => e.tone !== 'ok') : all
+  const events = onlyRisky ? all.filter((e) => e.tone === 'mid' || e.tone === 'bad') : all
   return (
     <div>
       {events.length === 0 && (

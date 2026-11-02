@@ -63,7 +63,7 @@ export function scan(
     score >= 75 ? 'CRITICAL' : score >= 50 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW'
 
   const recommendation =
-    level === 'LOW' ? 'No warning signs found in the information you entered.'
+    level === 'LOW' ? 'Nothing suspicious in what you typed. This is not proof the transaction is safe.'
     : level === 'MEDIUM' ? 'Check the details yourself before approving.'
     : level === 'HIGH' ? 'Do not approve unless you fully understand every warning.'
     : 'Reject this transaction.'
