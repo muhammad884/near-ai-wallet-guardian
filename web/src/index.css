@@ -91,3 +91,5 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
   background: none; border: 0; color: var(--text); padding: 6px;
   margin-left: 6px; cursor: pointer;
 }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
