@@ -6,7 +6,7 @@ import {
   useWalletSelector,
 } from '@near-wallet-selector/react-hook'
 import { KeyAuditCard } from './audit'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { setWalletAccount } from './state'
 
 const config = {
@@ -19,6 +19,22 @@ function Inner() {
   useEffect(() => {
     if (signedAccountId) setWalletAccount(signedAccountId)
   }, [signedAccountId])
+
+  const accountRef = useRef(signedAccountId)
+  accountRef.current = signedAccountId
+  useEffect(() => {
+    if (window.location.hash !== '#connect') return
+    const timer = setTimeout(() => {
+      window.history.replaceState(null, '', '/wallet')
+      if (accountRef.current) return
+      try {
+        Promise.resolve(signIn()).catch(() => undefined)
+      } catch {
+        // the Connect wallet button below still works
+      }
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [signIn])
   return (
     <div>
       <h1>Wallet Security</h1>

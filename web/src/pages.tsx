@@ -41,8 +41,8 @@ export function Dashboard() {
           As of your last visit to Wallet Security in this session. This
           page cannot see your wallet directly.
         </p>
-        <Link className="btn" to="/wallet" style={{ textAlign: 'center', textDecoration: 'none' }}>
-          {account ? 'Manage wallet' : 'Open Wallet Security'}
+        <Link className="btn" to={account ? '/wallet' : '/wallet#connect'} style={{ textAlign: 'center', textDecoration: 'none' }}>
+          {account ? 'Manage wallet' : 'Connect wallet'}
         </Link>
       </div>
       <div className="grid">
