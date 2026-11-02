@@ -1,6 +1,4 @@
-# Warden
-
-(The repository is named AI Wallet Guardian.)
+# AI Wallet Guardian
 
 A security layer for NEAR Protocol that sits between a user, their AI
 agents and their transactions. Built for the NEAR hackathon, AI Security

@@ -26,7 +26,7 @@ export default function App() {
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
         <Logo size={22} />
-        <strong>Warden</strong>
+        <strong>AI Wallet Guardian</strong>
         <span className="badge">NEAR</span>
         <button
           className="theme-btn"
