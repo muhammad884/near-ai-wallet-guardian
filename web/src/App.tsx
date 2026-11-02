@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
-import { Menu, Moon, ShieldCheck, Sun, X } from 'lucide-react'
+import { Menu, Moon, Sun, X } from 'lucide-react'
+import { Logo } from './Logo'
 import { nav } from './nav'
 import { Dashboard } from './pages'
 import { Limits } from './limits'
@@ -24,7 +25,7 @@ export default function App() {
         <button className="icon-btn" onClick={() => setOpen(!open)} aria-label="Menu">
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
-        <ShieldCheck size={20} style={{ color: 'var(--accent)' }} />
+        <Logo size={22} />
         <strong>AI Wallet Guardian</strong>
         <span className="badge">NEAR</span>
         <button
