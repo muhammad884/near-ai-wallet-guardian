@@ -25,3 +25,7 @@ export function readResult(result: unknown): Outcome {
   }
   return { state: 'UNKNOWN', hash }
 }
+
+export function countsAsSpent(state: Outcome['state']): boolean {
+  return state !== 'FAILED'
+}

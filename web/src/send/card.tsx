@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useWalletSelector } from '@near-wallet-selector/react-hook'
 import { checkSend, yoctoToNear } from './logic'
-import { readResult } from './result'
+import { countsAsSpent, readResult } from './result'
 import type { Outcome } from './result'
 import { decide, mayRequestSignature } from '../policy/decide'
 import type { ScanResult } from '../scanner/risk'
@@ -98,7 +98,7 @@ export function SendCard({ account }: { account: string }) {
         ],
       })
       const outcome = readResult(res)
-      if (outcome.state === 'SUCCESS') addSent(Number(r.amountText))
+      if (countsAsSpent(outcome.state)) addSent(Number(r.amountText))
       addEvent({
         source: 'Send NEAR',
         summary: `${r.amountText} NEAR to ${r.receiver}`,

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readResult } from '../src/send/result.ts'
+import { countsAsSpent, readResult } from '../src/send/result.ts'
 
 test('a successful outcome gives SUCCESS and the hash', () => {
   const r = readResult([
@@ -33,4 +33,10 @@ test('a hash alone does not mean success', () => {
   const r = readResult({ transaction: { hash: 'H' } })
   assert.equal(r.state, 'UNKNOWN')
   assert.equal(r.hash, 'H')
+})
+
+test('anything not proven failed counts as spent, to keep the limit safe', () => {
+  assert.equal(countsAsSpent('SUCCESS'), true)
+  assert.equal(countsAsSpent('UNKNOWN'), true)
+  assert.equal(countsAsSpent('FAILED'), false)
 })
