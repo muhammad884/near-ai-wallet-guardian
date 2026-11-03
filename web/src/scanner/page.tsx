@@ -1,32 +1,18 @@
 import { useState } from 'react'
-import { scanAndLog } from '../log/scanlogged'
-import type { ScanResult } from './risk'
-import type { Policy, Usage } from '../policy/types'
-
-const policy: Policy = {
-  maxPerTx: 10,
-  maxDaily: 50,
-  maxPerAgentDaily: 20,
-  approvalAbove: 5,
-  allowedContracts: ['wrap.near'],
-  allowedMethods: ['ft_transfer'],
-  restrictedMethods: ['add_full_access_key', 'delete_account'],
-}
-
-const usage: Usage = { totalToday: 12, agentToday: 6 }
+import { decideAndLog } from '../log/decided'
+import type { PolicyDecision } from '../policy/decide'
 
 export function Scanner() {
   const [amount, setAmount] = useState('2')
   const [receiver, setReceiver] = useState('wrap.near')
   const [method, setMethod] = useState('')
   const [args, setArgs] = useState('')
-  const [result, setResult] = useState<ScanResult | null>(null)
+  const [result, setResult] = useState<PolicyDecision | null>(null)
 
   function run() {
     setResult(
-      scanAndLog(
-        policy,
-        true,
+      decideAndLog(
+        'Transaction Scanner',
         {
           agentId: 'demo-agent',
           receiver: receiver.trim(),
@@ -34,7 +20,7 @@ export function Scanner() {
           method: method.trim() || undefined,
           args: args.trim() || undefined,
         },
-        usage,
+        'risk',
       ),
     )
   }
@@ -48,9 +34,10 @@ export function Scanner() {
     <div>
       <h1>Transaction Scanner</h1>
       <p className="muted">
-        Scores a transaction from 0 to 100 using fixed, visible rules. It
-        only looks at the information you type here. It does not read the
-        blockchain and does not prove a transaction is safe.
+        Scores a transaction from 0 to 100 using fixed, visible rules and
+        the policy you applied on Spending Limits. It only looks at the
+        information you type here. It does not read the blockchain and does
+        not prove a transaction is safe.
       </p>
 
       <div className="card" style={{ marginTop: 16 }}>
@@ -71,8 +58,12 @@ export function Scanner() {
             {result.score}/100 · {result.level}
           </div>
           <div className="muted" style={{ margin: '6px 0 10px' }}>
-            Policy decision (app-level, nothing happens on chain): {result.policy.decision}
+            Policy decision (app-level, nothing happens on chain): {result.verdict}
           </div>
+          {result.verdict !== 'APPROVED' &&
+            result.reasons.map((x) => (
+              <div className="row" key={x}>{x}</div>
+            ))}
           {result.findings.length === 0 && (
             <div className="row">No warning signs found in the information you entered.</div>
           )}

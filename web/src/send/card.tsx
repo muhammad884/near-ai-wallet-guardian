@@ -3,11 +3,11 @@ import { useWalletSelector } from '@near-wallet-selector/react-hook'
 import { checkSend, yoctoToNear } from './logic'
 import { readResult } from './result'
 import type { Outcome } from './result'
-import { scan } from '../scanner/risk'
+import { decide, mayRequestSignature } from '../policy/decide'
 import type { ScanResult } from '../scanner/risk'
-import { getActivePolicy } from '../policy/active'
+import { decideAndLog } from '../log/decided'
 import { addEvent } from '../log/store'
-import { addSent, getSentTotal } from './session'
+import { addSent } from './session'
 import { actionCreators } from '@near-js/transactions'
 
 const EXPLORER = 'https://testnet.nearblocks.io'
@@ -61,28 +61,26 @@ export function SendCard({ account }: { account: string }) {
       return
     }
     const to = receiver.trim()
-    const sent = getSentTotal()
-    const result = scan(
-      getActivePolicy(),
-      true,
+    const result = decideAndLog(
+      'Send NEAR',
       { agentId: 'you', receiver: to, amount: Number(amount) },
-      { totalToday: sent, agentToday: sent },
+      'verdict',
+      `Review: ${amount.trim()} NEAR to ${to}`,
     )
-    const d = result.policy.decision
-    addEvent({
-      source: 'Send NEAR',
-      summary: `Review: ${amount.trim()} NEAR to ${to}`,
-      outcome: d,
-      tone: d === 'APPROVED' ? 'ok' : d === 'BLOCKED' ? 'bad' : 'mid',
-    })
     setReview({ receiver: to, amountText: amount.trim(), yocto: c.yocto, result })
   }
 
   async function send() {
     if (!review || pending || busy.current) return
-    const dec = review.result.policy.decision
-    if (dec === 'BLOCKED') return
-    if (dec === 'REQUIRES_APPROVAL' && !agreed) return
+    const fresh = decide({
+      agentId: 'you',
+      receiver: review.receiver,
+      amount: Number(review.amountText),
+    })
+    if (!mayRequestSignature(fresh.verdict, agreed)) {
+      setMessage('The policy does not allow this transfer right now. Review it again.')
+      return
+    }
     busy.current = true
     setPending(true)
     setMessage('')

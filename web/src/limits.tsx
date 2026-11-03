@@ -1,39 +1,23 @@
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { evaluateAndLog } from './log/logged'
-import { buildPolicy } from './policy/config'
-import { setActivePolicy } from './policy/active'
+import { decideAndLog } from './log/decided'
+import { buildPolicy, policyToInput } from './policy/config'
 import type { PolicyInput } from './policy/config'
-import type { Policy, Result, Usage } from './policy/types'
+import { getActivePolicy, setActivePolicy } from './policy/active'
+import type { Policy } from './policy/types'
 
-const usage: Usage = { totalToday: 12, agentToday: 6 }
-
-const start: PolicyInput = {
-  maxPerTx: '10',
-  maxDaily: '50',
-  maxPerAgentDaily: '20',
-  approvalAbove: '5',
-  contracts: 'wrap.near',
-  methods: 'ft_transfer',
-  restricted: 'delete_account',
-}
-
-function firstPolicy(): Policy {
-  const r = buildPolicy(start)
-  if (!r.ok) throw new Error(r.error)
-  return r.policy
-}
+type Shown = { verdict: string; reasons: string[] }
 
 export function Limits() {
-  const [form, setForm] = useState<PolicyInput>(start)
-  const [policy, setPolicy] = useState<Policy>(firstPolicy)
+  const [form, setForm] = useState<PolicyInput>(() => policyToInput(getActivePolicy()))
+  const [policy, setPolicy] = useState<Policy>(() => getActivePolicy())
   const [formError, setFormError] = useState('')
   const [amount, setAmount] = useState('2')
   const [receiver, setReceiver] = useState('wrap.near')
   const [method, setMethod] = useState('')
   const [enabled, setEnabled] = useState(true)
   const [checkError, setCheckError] = useState('')
-  const [result, setResult] = useState<Result | null>(null)
+  const [result, setResult] = useState<Shown | null>(null)
 
   function bind(key: keyof PolicyInput) {
     return {
@@ -50,8 +34,8 @@ export function Limits() {
       return
     }
     setFormError('')
-    setPolicy(r.policy)
     setActivePolicy(r.policy)
+    setPolicy(r.policy)
     setResult(null)
   }
 
@@ -61,24 +45,24 @@ export function Limits() {
       return
     }
     setCheckError('')
-    setResult(
-      evaluateAndLog(
-        policy,
-        enabled,
-        {
-          agentId: 'demo-agent',
-          receiver: receiver.trim(),
-          amount: Number(amount),
-          method: method.trim() || undefined,
-        },
-        usage,
-      ),
+    const d = decideAndLog(
+      'Spending Limits',
+      {
+        agentId: 'demo-agent',
+        receiver: receiver.trim(),
+        amount: Number(amount),
+        method: method.trim() || undefined,
+      },
+      'verdict',
+      undefined,
+      enabled,
     )
+    setResult({ verdict: d.verdict, reasons: d.reasons })
   }
 
   const cls =
-    result?.decision === 'APPROVED' ? 'ok'
-    : result?.decision === 'BLOCKED' ? 'bad'
+    result?.verdict === 'APPROVED' ? 'ok'
+    : result?.verdict === 'BLOCKED' ? 'bad'
     : 'mid'
 
   return (
@@ -88,7 +72,9 @@ export function Limits() {
         Set your own limits and test transactions against them. This runs
         the policy engine in your browser. Enforced by: this app only. It
         shows a decision and does not block anything on the blockchain.
-        Today&apos;s spending (12 NEAR) is a fixed demo value.
+        Daily limits count only what you sent with Send NEAR in this
+        session (0 NEAR until you send something). The Transaction Scanner
+        and Send NEAR use the same policy.
       </p>
 
       <h2>Your policy</h2>
@@ -144,7 +130,7 @@ export function Limits() {
 
       {result && (
         <div className="card" style={{ marginTop: 12 }}>
-          <div className={'big ' + cls}>{result.decision}</div>
+          <div className={'big ' + cls}>{result.verdict}</div>
           <div className="muted">
             App-level decision only. Nothing was sent, and nothing was blocked
             on the blockchain.

@@ -73,3 +73,15 @@ export function buildPolicy(input: PolicyInput): BuildResult {
     },
   }
 }
+
+export function policyToInput(p: Policy): PolicyInput {
+  return {
+    maxPerTx: String(p.maxPerTx),
+    maxDaily: String(p.maxDaily),
+    maxPerAgentDaily: String(p.maxPerAgentDaily),
+    approvalAbove: String(p.approvalAbove),
+    contracts: p.allowedContracts.join(', '),
+    methods: p.allowedMethods.join(', '),
+    restricted: p.restrictedMethods.join(', '),
+  }
+}
