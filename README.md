@@ -21,6 +21,7 @@ every part.
 | Dashboard | Real counts from this session's decision log, the number of enabled agent profiles, and the wallet status as last seen on Wallet Security. |
 | Scam Detector (rules on the spelling of an account name) | Works, 11 automated tests. Reads nothing from the blockchain, uses no AI model, and cannot prove an account is safe or a scam. |
 | Permissions | Explains who enforces each rule. Creates and changes no keys. |
+| Send NEAR (testnet, on the Wallet Security page) | Checked by hand on testnet by the author: input errors, a blocked review (the wallet is never asked), an approval-needed review (Send stays disabled until you tick the box), one real 0.01 NEAR transfer (the app reported Sent on testnet and the author saw it succeed in the explorer) and a refused wallet request (nothing was sent). Unit tests cover the checks and the result reader. This is the app only: a transfer the policy blocks never reaches the wallet, but anyone can still send directly from their wallet. |
 | Settings | Light or dark theme (saved in the browser) and clearing the decision history. |
 | AI model | Not used anywhere yet. |
 | On-chain enforcement | Not built yet. See below. |
@@ -74,10 +75,16 @@ private key.
 
 - The wallet picker can be hidden in a narrow phone layout. Switching the
   browser to desktop site shows it.
-- Today's spending (12 NEAR) is a fixed demo value on the Spending
-  Limits and Scanner pages, and the Scanner uses a fixed demo policy.
-  Only the Spending Limits page lets you edit the policy.
+- Spending limits count only what you send with Send NEAR in this
+  session, and the count is lost when you refresh. The Scanner, Spending
+  Limits and Send NEAR use the same policy: the one you applied on the
+  Spending Limits page.
 - Agents and the activity log live in memory and are lost on refresh.
+- Allowed contracts and methods are checked only when a method is given
+  (a contract call). A plain NEAR transfer is limited by the amount rules
+  only.
+- Send NEAR counts a transfer as spent unless the wallet reports a
+  failure, so a result we cannot read still counts toward the daily limit.
 - The Scanner only looks at what you type. It does not read the
   blockchain, and a low score does not prove a transaction is safe.
 - npm audit reports vulnerabilities in dependencies (mostly pulled in by
@@ -130,8 +137,8 @@ signs anything itself, but that does not prove the risk is zero.
 
 ## Tests
 
-Run all automated tests from the web folder (57 tests at the time of
-writing: policy engine, scanner, agents, scam rules, key parsing, policy settings):
+Run all automated tests from the web folder (79 tests at the time of
+writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy):
 
     cd web
     node --test tests/*.test.ts
@@ -159,6 +166,11 @@ memory.
    testnet account, and see Connected with the account ID. Disconnect
    returns it to Not connected.
 6. Permissions: shows who enforces each rule.
+7. Send NEAR (Wallet Security, after you connect a testnet account that
+   has testnet NEAR from the faucet): enter a testnet recipient and a
+   small amount, press Review and check, read the policy decision, then
+   press Send in my wallet and approve in Meteor. A BLOCKED review never
+   opens the wallet.
 
 ## Built with, and AI disclosure
 
