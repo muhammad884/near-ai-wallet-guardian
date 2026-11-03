@@ -6,6 +6,7 @@ import {
   useWalletSelector,
 } from '@near-wallet-selector/react-hook'
 import { KeyAuditCard } from './audit'
+import { SendCard } from '../send/card'
 import { useEffect, useRef } from 'react'
 import { setWalletAccount } from './state'
 
@@ -65,6 +66,7 @@ function Inner() {
         )}
       </div>
       {signedAccountId && <KeyAuditCard account={signedAccountId} />}
+      {signedAccountId && <SendCard account={signedAccountId} />}
     </div>
   )
 }

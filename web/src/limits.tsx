@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { evaluateAndLog } from './log/logged'
 import { buildPolicy } from './policy/config'
+import { setActivePolicy } from './policy/active'
 import type { PolicyInput } from './policy/config'
 import type { Policy, Result, Usage } from './policy/types'
 
@@ -50,6 +51,7 @@ export function Limits() {
     }
     setFormError('')
     setPolicy(r.policy)
+    setActivePolicy(r.policy)
     setResult(null)
   }
 
