@@ -13,18 +13,22 @@ every part.
 
 | Part | Status |
 | --- | --- |
-| Policy engine (limits, allowed contracts and methods) | Works. Pure code, 12 automated tests. The Spending Limits page lets you edit the policy (its input checks have 8 tests). Decisions are app-level only. |
+| Policy engine (limits, allowed contracts and methods) | Works. Pure code with automated tests. The Spending Limits page lets you edit the policy. It is saved in this browser and used by the Scanner, Spending Limits and Send NEAR. Decisions are app-level only. |
 | Transaction Scanner (0-100 score with visible rules) | Works. Pure code, 10 automated tests. |
-| AI Agents page (validated agent profiles) | Works in the browser only. 10 automated tests. |
-| Activity History and Security Alerts | Works. Kept in memory, cleared on refresh. |
+| AI Agents page (validated agent profiles) | Works. Profiles are saved in this browser. They are saved settings only: they do not run, do not control any AI agent and do not send transactions. Automated tests cover validation and saving. |
+| Activity History and Security Alerts | Works. Saved in this browser (up to 200 records) and restored on reload. Not stored on the blockchain or in the cloud. |
 | Wallet page (NEAR Wallet Selector, Meteor, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet. It shows the account ID and a read-only list of the account's access keys from the testnet RPC (checked by hand: our test account has 1 full-access key and 0 function-call keys). The Dashboard shows the wallet status as last seen on this page. |
-| Dashboard | Real counts from this session's decision log, the number of enabled agent profiles, and the wallet status as last seen on Wallet Security. |
+| Dashboard | Real counts from the decisions saved in this browser, the number of enabled agent profiles, and the wallet status as last seen on Wallet Security. |
 | Scam Detector (rules on the spelling of an account name) | Works, 11 automated tests. Reads nothing from the blockchain, uses no AI model, and cannot prove an account is safe or a scam. |
 | Permissions | Explains who enforces each rule. Creates and changes no keys. |
 | Send NEAR (testnet, on the Wallet Security page) | Checked by hand on testnet by the author: input errors, a blocked review (the wallet is never asked), an approval-needed review (Send stays disabled until you tick the box), one real 0.01 NEAR transfer (the app reported Sent on testnet and the author saw it succeed in the explorer) and a refused wallet request (nothing was sent). Unit tests cover the checks and the result reader. This is the app only: a transfer the policy blocks never reaches the wallet, but anyone can still send directly from their wallet. |
 | Settings | Light or dark theme (saved in the browser) and clearing the decision history. |
 | AI model | Not used anywhere yet. |
 | On-chain enforcement | Not built yet. See below. |
+
+## How the checks work
+
+The policy engine, the transaction scanner and the scam detector are rule-based code. They do not use an AI model, and no AI model decides anything in this app. The name refers to the people this tool is for: owners who let AI agents act on their NEAR account. Every rule is visible in the source, and the same input and policy always give the same decision.
 
 ## About enforcement (read this)
 
@@ -73,13 +77,13 @@ private key.
 
 ## Known issues
 
-- The wallet picker can be hidden in a narrow phone layout. Switching the
+- The wallet picker can be hidden in a narrow phone layout. We tried a CSS change for narrow screens and it did not fix it, so we removed it. Switching the
   browser to desktop site shows it.
 - Spending limits count only what you send with Send NEAR in this
   session, and the count is lost when you refresh. The Scanner, Spending
   Limits and Send NEAR use the same policy: the one you applied on the
   Spending Limits page.
-- Agents and the activity log live in memory and are lost on refresh.
+- Activity history, agent profiles, the applied policy and the amount sent today are saved in this browser (localStorage). This is specific to one browser on one device. It is not cloud or blockchain storage, and clearing the browser data removes it. Agent profiles are saved settings only: they do not run and do not send transactions.
 - Allowed contracts and methods are checked only when a method is given
   (a contract call). A plain NEAR transfer is limited by the amount rules
   only.
@@ -111,34 +115,37 @@ Source for the first three rows: the NEAR access keys documentation
 needed to enforce NEAR limits is our own design idea, not something
 the documentation states.
 
-## Dependency audit (not fixed)
+## Dependency audit
 
-On 1 November 2026 we ran npm audit on production dependencies only
-(npm audit --omit=dev). It reported 19 vulnerabilities (14 low, 5 high).
-We have not fixed them. We read the first 40 lines of the report, not all
-of it, and we have not looked at the 12 or so warnings in development
-tools.
+Run on 2026-11-04 with npm audit (the full report).
 
-What we saw:
+- Production dependencies (npm audit --omit=dev): 16 (16 low, 0 moderate, 0 high, 0 critical).
+- All dependencies including development tools: 28 (16 low, 12 moderate, 0 high, 0 critical).
 
-- decode-uri-component: denial of service on malformed input (high).
-- nanoid: can loop forever on some invalid size values (high).
-- elliptic: an advisory about a risky cryptographic implementation. We
-  have not read the details.
+Before our change the production audit listed 5 high findings
+(decode-uri-component and nanoid, and the packages that depend on them).
+package.json now has overrides that force nanoid 5.1.16 and
+decode-uri-component 0.5.1. The second is newer than the version the
+Meteor SDK asked for, so we checked Meteor sign-in by hand on testnet
+again after the change.
 
-All of them come in through the NEAR wallet packages and the Meteor
-wallet SDK. The only fix npm offers is a forced downgrade of
-meteor-wallet to 9.3.0. That is a breaking change and could break the
-sign-in we tested by hand, so we did not apply it.
+What remains is low severity: the @near-js packages, near-api-js,
+secp256k1 and elliptic (an advisory about a risky cryptographic
+implementation that we have not read in detail). In the report we read,
+npm's suggested fix for that chain was a forced change that installs
+meteor-wallet 9.3.0. It is a breaking change, so we did not apply it.
 
-We have not checked whether our own code can reach the vulnerable code.
-Our code never asks for or stores a seed phrase or private key and never
-signs anything itself, but that does not prove the risk is zero.
+Reachability: our own source does not import these packages directly
+(checked with grep). We did not trace whether the wallet libraries call
+vulnerable code with input an attacker controls, so we do not claim it
+is unreachable. Our code never asks for or stores a seed phrase or
+private key and never signs anything itself, but that does not prove the
+risk is zero.
 
 ## Tests
 
-Run all automated tests from the web folder (79 tests at the time of
-writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy):
+Run all automated tests from the web folder (91 tests at the time of
+writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy, browser storage):
 
     cd web
     node --test tests/*.test.ts
@@ -149,8 +156,7 @@ which we checked by hand, and they do not test anything on the blockchain.
 ## How to try it (judges)
 
 Open https://near-ai-wallet-guardian.vercel.app. On a phone, switch the
-browser to Desktop site. Do not refresh between steps: the log is kept in
-memory.
+browser to Desktop site. Your decisions, agent profiles and policy are saved in this browser.
 
 1. Spending Limits: press Check transaction (Amount 2) and see APPROVED.
    Change Amount to 7 and see REQUIRES_APPROVAL. Change it to 40 and see
