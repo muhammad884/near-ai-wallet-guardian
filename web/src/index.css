@@ -95,3 +95,15 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .neutral { color: var(--muted); }
+
+/* awg-mobile-picker: keep the wallet list reachable on narrow phones */
+@media (max-width: 576px) {
+  .nws-modal-wrapper .nws-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .nws-modal-wrapper .nws-modal .modal-right .nws-modal-body .what-wallet-mobi {
+    height: auto;
+    max-height: 220px;
+  }
+}
