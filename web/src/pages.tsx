@@ -22,8 +22,7 @@ export function Dashboard() {
     <div>
       <h1>Dashboard</h1>
       <p className="muted">
-        These numbers come from the decisions made in this browser tab and
-        reset when you refresh the page. Active agents counts the profiles registered on the AI Agents page, not connected software. No wallet data is read here.
+        These numbers come from the decisions saved in this browser (up to 200 records). Active agents counts the profiles registered on the AI Agents page, not connected software. No wallet data is read here.
       </p>
       <div className="card" style={{ marginTop: 16 }}>
         <span className="tag-demo">TESTNET</span>

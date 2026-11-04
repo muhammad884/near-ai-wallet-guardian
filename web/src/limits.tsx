@@ -72,8 +72,7 @@ export function Limits() {
         Set your own limits and test transactions against them. This runs
         the policy engine in your browser. Enforced by: this app only. It
         shows a decision and does not block anything on the blockchain.
-        Daily limits count only what you sent with Send NEAR in this
-        session (0 NEAR until you send something). The Transaction Scanner
+        Daily limits count what you sent with Send NEAR today (UTC) in this browser, and your policy is saved in this browser. The Transaction Scanner
         and Send NEAR use the same policy. Allowed contracts and methods are
         checked only when a method is given (a contract call). A plain NEAR
         transfer is limited by the amount rules only.

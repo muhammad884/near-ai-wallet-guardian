@@ -37,7 +37,7 @@ export function Agents() {
       <p className="muted">
         Register an agent and set its limits. These are settings inside this
         app only. They are NOT enforced on the blockchain yet, and the list
-        is kept in memory, so it resets when you refresh the page.
+        is saved in this browser only. These are saved profiles: they do not run, do not control any AI agent and do not send any transaction.
       </p>
 
       <h2>New agent</h2>

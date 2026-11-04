@@ -32,8 +32,7 @@ export function History() {
       <h1>Activity History</h1>
       <p className="muted">
         Every decision made by the policy engine or the scanner in this
-        browser tab. It is kept in memory only, so it is cleared when you
-        refresh the page. It is not stored on the blockchain.
+        browser tab. It is saved in this browser (up to 200 records) and restored when you come back. It is not stored on the blockchain or in the cloud, and it is specific to this browser and device.
       </p>
       {events.length > 0 && (
         <button className="btn" onClick={clearEvents}>Clear history</button>
