@@ -5,6 +5,7 @@
 export const config = { maxDuration: 45 }
 
 const DEFAULT_MODEL = 'gemini-3.6-flash'
+const BACKUP_MODEL = 'gemini-3.5-flash-lite'
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/'
 const TIMEOUT_MS = 20000
 const MAX_BODY_CHARS = 4000
@@ -282,7 +283,7 @@ export function createHandler({
     if (typeof key !== 'string' || key.length < 10) return fallback('NO_KEY')
 
     const wanted = env.GEMINI_MODEL
-    const model =
+    let model =
       typeof wanted === 'string' && /^gemini-[a-z0-9.-]{2,60}$/.test(wanted) ? wanted : DEFAULT_MODEL
 
     const callOnce = async () => {
@@ -326,11 +327,15 @@ export function createHandler({
         return { error: e }
       }
     }
-    // Google is sometimes busy or slow. Try once more after a short pause when the
-    // first try times out, cannot connect or gets a 5xx. 4xx errors are not retried.
+    // If this model is out of quota, missing, busy, slow or unreachable, switch once to
+    // the backup model. Key and settings errors (400, 401, 403) are not retried.
     let out = await attempt()
-    if (out.error || (!out.r.ok && out.r.status >= 500)) {
+    const status = out.error ? 0 : out.r.status
+    const switchable = out.error || status === 429 || status === 404 || status >= 500
+    if (switchable && model !== BACKUP_MODEL) {
+      console.error('gemini-switch', model, out.error ? out.error.name : status)
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
+      model = BACKUP_MODEL
       out = await attempt()
     }
     if (out.error) {

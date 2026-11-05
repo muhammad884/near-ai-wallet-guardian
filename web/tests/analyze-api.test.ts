@@ -219,8 +219,32 @@ test('a busy Gemini (5xx) is retried once, and 4xx errors are not', async () => 
   assert.equal(down.calls, 2)
   assert.equal(down.res.body.reason, 'UNAVAILABLE')
 
-  const quota = await run(goodTx, { response: errResp(429) })
-  assert.equal(quota.calls, 1)
+  const rejected = await run(goodTx, { response: errResp(403) })
+  assert.equal(rejected.calls, 1)
+})
+
+test('when the main model is out of quota the backup model answers', async () => {
+  const models: string[] = []
+  const h = createHandler({
+    fetchImpl: (async (url: string) => {
+      models.push(url)
+      return models.length === 1 ? errResp(429) : okResp(wrapGemini(analysisJson))
+    }) as any,
+    env: { GEMINI_API_KEY: KEY },
+    now: () => 1_000_000,
+    retryDelayMs: 1,
+  })
+  const res = fakeRes()
+  await h(fakeReq(goodTx), res)
+  assert.equal(models.length, 2)
+  assert.ok(models[0].includes('gemini-3.6-flash'))
+  assert.ok(models[1].includes('gemini-3.5-flash-lite'))
+  assert.equal(res.body.status, 'ok')
+  assert.equal(res.body.model, 'gemini-3.5-flash-lite')
+
+  const both = await run(goodTx, { response: errResp(429) })
+  assert.equal(both.calls, 2)
+  assert.equal(both.res.body.reason, 'QUOTA')
 })
 
 test('a slow or unreachable Gemini is retried once, then labelled', async () => {
