@@ -29,7 +29,7 @@ function Inner() {
       window.history.replaceState(null, '', '/wallet')
       if (accountRef.current) return
       try {
-        Promise.resolve(signIn()).catch(() => undefined)
+        void connectMeteor()
       } catch {
         // the Connect wallet button below still works
       }
