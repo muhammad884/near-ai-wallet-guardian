@@ -99,7 +99,7 @@ export async function askGemini(
 ): Promise<AiOutcome> {
   const doFetch = opts.fetchImpl ?? fetch
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), opts.timeoutMs ?? 12000)
+  const timer = setTimeout(() => controller.abort(), opts.timeoutMs ?? 14000)
   try {
     const res = await doFetch('/api/analyze', {
       method: 'POST',
