@@ -95,3 +95,16 @@ h2 { margin: 24px 0 10px; font-size: 17px; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .neutral { color: var(--muted); }
+
+/* Wallet picker: keep it above the header and sidebar, and fit small phone screens */
+.nws-modal-wrapper {
+  z-index: 100000 !important;
+}
+@media (max-width: 640px) {
+  .nws-modal-wrapper .nws-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: 420px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+}
