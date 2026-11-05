@@ -105,7 +105,3 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 #near-wallet-selector-modal .nws-modal-overlay {
   z-index: 99999 !important;
 }
-#near-wallet-selector-modal .nws-modal {
-  max-height: 90dvh;
-  overflow-y: auto;
-}
