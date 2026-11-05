@@ -216,7 +216,7 @@ test('a busy Gemini (5xx) is retried once, and 4xx errors are not', async () => 
   assert.equal(res.body.status, 'ok')
 
   const down = await run(goodTx, { response: errResp(503) })
-  assert.equal(down.calls, 2)
+  assert.equal(down.calls, 3)
   assert.equal(down.res.body.reason, 'UNAVAILABLE')
 
   const rejected = await run(goodTx, { response: errResp(403) })

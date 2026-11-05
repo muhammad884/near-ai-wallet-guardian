@@ -2,7 +2,7 @@
 // Advisory only: this code never approves, blocks, signs or sends anything.
 // The API key is read from the server environment and never sent to the browser.
 
-export const config = { maxDuration: 45 }
+export const config = { maxDuration: 60 }
 
 const DEFAULT_MODEL = 'gemini-3.6-flash'
 const BACKUP_MODEL = 'gemini-3.5-flash-lite'
@@ -200,7 +200,7 @@ const MESSAGES = {
   QUOTA: 'The free Gemini quota is used up for now.',
   MODEL_UNAVAILABLE: 'The Gemini model is not available.',
   REJECTED: 'Gemini rejected the request (a key or settings problem on the server).',
-  UNAVAILABLE: 'Gemini is unavailable right now.',
+  UNAVAILABLE: 'Gemini is busy right now. Please try again in a few seconds.',
   TIMEOUT: 'Gemini took too long to answer.',
   NETWORK: 'The server could not reach Gemini.',
   INVALID_RESPONSE: 'Gemini answered, but the answer failed validation and was discarded.',
@@ -336,6 +336,12 @@ export function createHandler({
       console.error('gemini-switch', model, out.error ? out.error.name : status)
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
       model = BACKUP_MODEL
+      out = await attempt()
+    }
+    // Google sometimes answers 503 on both models; wait a little and try once more.
+    if (!out.error && out.r.status === 503) {
+      console.error('gemini-retry-503', model)
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs * 2))
       out = await attempt()
     }
     if (out.error) {
