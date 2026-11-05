@@ -16,7 +16,7 @@ const config = {
 }
 
 function Inner() {
-  const { signedAccountId, signIn, signOut } = useWalletSelector()
+  const { signedAccountId, signIn, signOut, walletSelector } = useWalletSelector()
   useEffect(() => {
     if (signedAccountId) setWalletAccount(signedAccountId)
   }, [signedAccountId])
@@ -36,6 +36,16 @@ function Inner() {
     }, 1200)
     return () => clearTimeout(timer)
   }, [signIn])
+  async function connectMeteor() {
+    try {
+      const selector = await walletSelector
+      if (!selector) return signIn()
+      const wallet = await selector.wallet('meteor-wallet')
+      await wallet.signIn({} as never)
+    } catch (err) {
+      console.error('Meteor sign-in failed', err)
+    }
+  }
   return (
     <div>
       <h1>Wallet Security</h1>
@@ -62,7 +72,7 @@ function Inner() {
             setWalletAccount(null)
           }}>Disconnect</button>
         ) : (
-          <button className="btn" onClick={() => signIn()}>Connect wallet</button>
+          <button className="btn" onClick={connectMeteor}>Connect Meteor Wallet</button>
         )}
       </div>
       {signedAccountId && <KeyAuditCard account={signedAccountId} />}
