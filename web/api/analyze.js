@@ -316,9 +316,13 @@ export function createHandler({
       }
     }
     const attempt = async () => {
+      const t0 = Date.now()
       try {
-        return await callOnce()
+        const res = await callOnce()
+        console.log('gemini-try', model, res.r.status, Date.now() - t0, 'ms')
+        return res
       } catch (e) {
+        console.error('gemini-try-failed', model, e?.name, Date.now() - t0, 'ms')
         return { error: e }
       }
     }
