@@ -222,3 +222,25 @@ test('a busy Gemini (5xx) is retried once, and 4xx errors are not', async () => 
   const quota = await run(goodTx, { response: errResp(429) })
   assert.equal(quota.calls, 1)
 })
+
+test('a slow or unreachable Gemini is retried once, then labelled', async () => {
+  let n = 0
+  const h = createHandler({
+    fetchImpl: (async () => {
+      n += 1
+      if (n === 1) throw Object.assign(new Error('aborted'), { name: 'AbortError' })
+      return okResp(wrapGemini(analysisJson))
+    }) as any,
+    env: { GEMINI_API_KEY: KEY },
+    now: () => 1_000_000,
+    retryDelayMs: 1,
+  })
+  const res = fakeRes()
+  await h(fakeReq(goodTx), res)
+  assert.equal(n, 2)
+  assert.equal(res.body.status, 'ok')
+
+  const slow = await run(goodTx, { throws: Object.assign(new Error('aborted'), { name: 'AbortError' }) })
+  assert.equal(slow.calls, 2)
+  assert.equal(slow.res.body.reason, 'TIMEOUT')
+})

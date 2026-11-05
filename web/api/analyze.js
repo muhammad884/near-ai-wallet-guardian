@@ -2,11 +2,11 @@
 // Advisory only: this code never approves, blocks, signs or sends anything.
 // The API key is read from the server environment and never sent to the browser.
 
-export const config = { maxDuration: 15 }
+export const config = { maxDuration: 30 }
 
 const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/'
-const TIMEOUT_MS = 12000
+const TIMEOUT_MS = 9000
 const MAX_BODY_CHARS = 4000
 const PER_MINUTE = 6
 const PER_DAY = 150
@@ -285,11 +285,11 @@ export function createHandler({
     const model =
       typeof wanted === 'string' && /^gemini-[a-z0-9.-]{2,60}$/.test(wanted) ? wanted : DEFAULT_MODEL
 
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-    try {
-      const request = () =>
-        fetchImpl(GEMINI_BASE + model + ':generateContent', {
+    const callOnce = async () => {
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+      try {
+        const r = await fetchImpl(GEMINI_BASE + model + ':generateContent', {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
           body: JSON.stringify({
@@ -303,27 +303,39 @@ export function createHandler({
           }),
           signal: controller.signal,
         })
-      let r = await request()
-      // Google sometimes answers 5xx when busy. Try once more, inside the same time limit.
-      if (!r.ok && r.status >= 500) {
-        await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
-        r = await request()
+        if (!r.ok) return { r, json: null }
+        let json = null
+        try {
+          json = await r.json()
+        } catch {
+          json = null
+        }
+        return { r, json }
+      } finally {
+        clearTimeout(timer)
       }
-      if (!r.ok) return fallback(reasonForStatus(r.status))
-      let json = null
-      try {
-        json = await r.json()
-      } catch {
-        json = null
-      }
-      const analysis = parseAiResponse(json)
-      if (!analysis) return fallback('INVALID_RESPONSE')
-      return send(200, { status: 'ok', source: 'GEMINI', model, analysis })
-    } catch (e) {
-      return fallback(e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK')
-    } finally {
-      clearTimeout(timer)
     }
+    const attempt = async () => {
+      try {
+        return await callOnce()
+      } catch (e) {
+        return { error: e }
+      }
+    }
+    // Google is sometimes busy or slow. Try once more after a short pause when the
+    // first try times out, cannot connect or gets a 5xx. 4xx errors are not retried.
+    let out = await attempt()
+    if (out.error || (!out.r.ok && out.r.status >= 500)) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
+      out = await attempt()
+    }
+    if (out.error) {
+      return fallback(out.error && out.error.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK')
+    }
+    if (!out.r.ok) return fallback(reasonForStatus(out.r.status))
+    const analysis = parseAiResponse(out.json)
+    if (!analysis) return fallback('INVALID_RESPONSE')
+    return send(200, { status: 'ok', source: 'GEMINI', model, analysis })
   }
 }
 
