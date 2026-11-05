@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { decideAndLog } from '../log/decided'
 import type { PolicyDecision } from '../policy/decide'
+import { askGemini, transactionRequest } from '../ai/client'
+import type { AiOutcome, AiRequest } from '../ai/client'
+import { AiPanel } from '../ai/panel'
 
 export function Scanner() {
   const [amount, setAmount] = useState('2')
@@ -8,21 +11,38 @@ export function Scanner() {
   const [method, setMethod] = useState('')
   const [args, setArgs] = useState('')
   const [result, setResult] = useState<PolicyDecision | null>(null)
+  const [request, setRequest] = useState<AiRequest | null>(null)
+  const [ai, setAi] = useState<AiOutcome | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const latest = useRef<AiRequest | null>(null)
 
   function run() {
-    setResult(
-      decideAndLog(
-        'Transaction Scanner',
-        {
-          agentId: 'demo-agent',
-          receiver: receiver.trim(),
-          amount: Number(amount),
-          method: method.trim() || undefined,
-          args: args.trim() || undefined,
-        },
-        'risk',
-      ),
+    const input = {
+      agentId: 'demo-agent',
+      receiver: receiver.trim(),
+      amount: Number(amount),
+      method: method.trim() || undefined,
+      args: args.trim() || undefined,
+    }
+    const d = decideAndLog('Transaction Scanner', input, 'risk')
+    const req = transactionRequest(
+      { receiver: input.receiver, amount: input.amount, method: input.method, args: input.args },
+      d,
     )
+    latest.current = req
+    setResult(d)
+    setRequest(req)
+    setAi(null)
+  }
+
+  async function askAi() {
+    if (!request || aiLoading) return
+    const req = request
+    setAiLoading(true)
+    setAi(null)
+    const out = await askGemini(req)
+    if (latest.current === req) setAi(out)
+    setAiLoading(false)
   }
 
   const cls =
@@ -34,10 +54,11 @@ export function Scanner() {
     <div>
       <h1>Transaction Scanner</h1>
       <p className="muted">
-        Scores a transaction from 0 to 100 using fixed, visible rules and
-        the policy you applied on Spending Limits. It only looks at the
-        information you type here. It does not read the blockchain and does
-        not prove a transaction is safe.
+        Scores a transaction from 0 to 100 using fixed, visible rules and the policy
+        you applied on Spending Limits. The score and the policy decision come from
+        rule-based code, not from an AI model. They look only at what you type here,
+        do not read the blockchain and do not prove a transaction is safe. You can
+        also ask Gemini for a separate, optional second opinion.
       </p>
 
       <div className="card" style={{ marginTop: 16 }}>
@@ -75,6 +96,10 @@ export function Scanner() {
           ))}
           <div className="row"><strong>{result.recommendation}</strong></div>
         </div>
+      )}
+
+      {result && (
+        <AiPanel outcome={ai} loading={aiLoading} onAsk={askAi} policyVerdict={result.verdict} />
       )}
     </div>
   )

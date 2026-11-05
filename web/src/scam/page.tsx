@@ -1,30 +1,45 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { analyze } from './rules'
 import type { ScamReport } from './rules'
 import { addEvent } from '../log/store'
+import { askGemini } from '../ai/client'
+import type { AiOutcome } from '../ai/client'
+import { AiPanel } from '../ai/panel'
 
 export function ScamDetector() {
   const [account, setAccount] = useState('')
   const [report, setReport] = useState<ScamReport | null>(null)
+  const [ai, setAi] = useState<AiOutcome | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const latest = useRef('')
 
   function run() {
     if (account.trim() === '') return
     const r = analyze(account)
+    latest.current = r.account
     setReport(r)
+    setAi(null)
     addEvent({
       source: 'Scam Detector',
       summary: r.account,
       outcome: r.level,
-      tone:
-        r.level === 'NO SIGNS FOUND' ? 'neutral'
-        : r.level === 'HIGH' ? 'bad'
-        : 'mid',
+      tone: r.level === 'NO SIGNS FOUND' ? 'neutral' : r.level === 'HIGH' ? 'bad' : 'mid',
     })
+  }
+
+  async function askAi() {
+    if (!report || report.level === 'INVALID' || aiLoading) return
+    const target = report.account
+    setAiLoading(true)
+    setAi(null)
+    const out = await askGemini({ kind: 'account', account: target })
+    if (latest.current === target) setAi(out)
+    setAiLoading(false)
   }
 
   const cls =
     report === null ? ''
-    : report.level === 'NO SIGNS FOUND' ? 'ok'
+    : report.level === 'NO SIGNS FOUND' ? 'neutral'
     : report.level === 'HIGH' ? 'bad'
     : 'mid'
 
@@ -32,19 +47,14 @@ export function ScamDetector() {
     <div>
       <h1>Scam Detector</h1>
       <p className="muted">
-        Checks the spelling of a NEAR account name against fixed rules. It
-        does not read the blockchain and does not use an AI model yet. It
-        never proves an account is a scam, and an unfamiliar account is
-        not automatically a scammer.
+        Checks the spelling of a NEAR account name against fixed rules. The rules are
+        plain code, not an AI model. They do not read the blockchain and never prove
+        that an account is a scam, and an unfamiliar account is not automatically a
+        scammer. You can also ask Gemini for a separate, optional second opinion.
       </p>
       <div className="card" style={{ marginTop: 16 }}>
         <label className="muted">NEAR account ID</label>
-        <input
-          className="field"
-          value={account}
-          onChange={(e) => setAccount(e.target.value)}
-          placeholder="wrap.near"
-        />
+        <input className="field" value={account} onChange={(e) => setAccount(e.target.value)} placeholder="wrap.near" />
         <button className="btn" onClick={run}>Check account</button>
       </div>
 
@@ -77,6 +87,10 @@ export function ScamDetector() {
             Source: {report.source}
           </div>
         </div>
+      )}
+
+      {report && report.level !== 'INVALID' && (
+        <AiPanel outcome={ai} loading={aiLoading} onAsk={askAi} policyVerdict={null} />
       )}
     </div>
   )
