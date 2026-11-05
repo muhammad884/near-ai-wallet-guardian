@@ -41,6 +41,7 @@ async function run(body: any, opts: any = {}, reqOver: any = {}) {
     fetchImpl,
     env: opts.env ?? { GEMINI_API_KEY: KEY },
     now: opts.now ?? (() => 1_000_000),
+    retryDelayMs: 1,
   })
   const res = fakeRes()
   await h(fakeReq(body, reqOver), res)
@@ -196,4 +197,28 @@ test('the daily cap stops the service for everyone', async () => {
   }
   assert.equal(last.code, 429)
   assert.equal(last.body.reason, 'DAILY_CAP')
+})
+
+test('a busy Gemini (5xx) is retried once, and 4xx errors are not', async () => {
+  let n = 0
+  const h = createHandler({
+    fetchImpl: (async () => {
+      n += 1
+      return n === 1 ? errResp(503) : okResp(wrapGemini(analysisJson))
+    }) as any,
+    env: { GEMINI_API_KEY: KEY },
+    now: () => 1_000_000,
+    retryDelayMs: 1,
+  })
+  const res = fakeRes()
+  await h(fakeReq(goodTx), res)
+  assert.equal(n, 2)
+  assert.equal(res.body.status, 'ok')
+
+  const down = await run(goodTx, { response: errResp(503) })
+  assert.equal(down.calls, 2)
+  assert.equal(down.res.body.reason, 'UNAVAILABLE')
+
+  const quota = await run(goodTx, { response: errResp(429) })
+  assert.equal(quota.calls, 1)
 })

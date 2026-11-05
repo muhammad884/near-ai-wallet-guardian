@@ -236,6 +236,7 @@ export function createHandler({
   fetchImpl = globalThis.fetch,
   env = process.env,
   now = () => Date.now(),
+  retryDelayMs = 700,
 } = {}) {
   const limiter = createLimiter({ perMinute: PER_MINUTE, perDay: PER_DAY, now })
 
@@ -287,20 +288,27 @@ export function createHandler({
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
     try {
-      const r = await fetchImpl(GEMINI_BASE + model + ':generateContent', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: buildPrompt(v.value) }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseJsonSchema: RESPONSE_SCHEMA,
-            temperature: 0.2,
-            maxOutputTokens: 1024,
-          },
-        }),
-        signal: controller.signal,
-      })
+      const request = () =>
+        fetchImpl(GEMINI_BASE + model + ':generateContent', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: buildPrompt(v.value) }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseJsonSchema: RESPONSE_SCHEMA,
+              temperature: 0.2,
+              maxOutputTokens: 1024,
+            },
+          }),
+          signal: controller.signal,
+        })
+      let r = await request()
+      // Google sometimes answers 5xx when busy. Try once more, inside the same time limit.
+      if (!r.ok && r.status >= 500) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
+        r = await request()
+      }
       if (!r.ok) return fallback(reasonForStatus(r.status))
       let json = null
       try {
