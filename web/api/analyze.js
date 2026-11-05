@@ -2,11 +2,11 @@
 // Advisory only: this code never approves, blocks, signs or sends anything.
 // The API key is read from the server environment and never sent to the browser.
 
-export const config = { maxDuration: 30 }
+export const config = { maxDuration: 45 }
 
 const DEFAULT_MODEL = 'gemini-3.6-flash'
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/'
-const TIMEOUT_MS = 9000
+const TIMEOUT_MS = 20000
 const MAX_BODY_CHARS = 4000
 const PER_MINUTE = 6
 const PER_DAY = 150
