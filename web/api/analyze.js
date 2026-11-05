@@ -4,7 +4,7 @@
 
 export const config = { maxDuration: 15 }
 
-const DEFAULT_MODEL = 'gemini-2.5-flash-lite'
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite'
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/'
 const TIMEOUT_MS = 8000
 const MAX_BODY_CHARS = 4000
