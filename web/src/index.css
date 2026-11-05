@@ -96,15 +96,16 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .neutral { color: var(--muted); }
 
-/* Wallet picker: keep it above the header and sidebar, and fit small phone screens */
+/* Wallet picker: keep it above the header and sidebar */
 .nws-modal-wrapper {
   z-index: 100000 !important;
 }
-@media (max-width: 640px) {
-  .nws-modal-wrapper .nws-modal {
-    width: calc(100vw - 24px) !important;
-    max-width: 420px;
-    max-height: 85vh;
-    overflow-y: auto;
-  }
+
+/* Wallet picker on phones */
+#near-wallet-selector-modal .nws-modal-overlay {
+  z-index: 99999 !important;
+}
+#near-wallet-selector-modal .nws-modal {
+  max-height: 90dvh;
+  overflow-y: auto;
 }
