@@ -152,9 +152,9 @@ export function validateAnalysis(o) {
   const lists = {}
   for (const k of ['reasons', 'indicators', 'recommendations', 'uncertainties']) {
     const arr = o[k]
-    if (!Array.isArray(arr) || arr.length > 8) return null
+    if (!Array.isArray(arr)) return null
     const items = []
-    for (const x of arr) {
+    for (const x of arr.slice(0, 8)) {
       const s = cleanOut(x, 300)
       if (s === null) return null
       if (s) items.push(s)
@@ -298,7 +298,7 @@ export function createHandler({
               responseMimeType: 'application/json',
               responseJsonSchema: RESPONSE_SCHEMA,
               temperature: 0.2,
-              maxOutputTokens: 1024,
+              maxOutputTokens: 4096,
             },
           }),
           signal: controller.signal,
@@ -340,7 +340,10 @@ export function createHandler({
     if (out.r.ok === false) console.error('gemini-status', model, out.r.status)
     if (!out.r.ok) return fallback(reasonForStatus(out.r.status))
     const analysis = parseAiResponse(out.json)
-    if (!analysis) return fallback('INVALID_RESPONSE')
+    if (!analysis) {
+      console.error('gemini-invalid', model, out.json?.candidates?.[0]?.finishReason)
+      return fallback('INVALID_RESPONSE')
+    }
     return send(200, { status: 'ok', source: 'GEMINI', model, analysis })
   }
 }
