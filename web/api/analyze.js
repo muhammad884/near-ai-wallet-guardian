@@ -330,8 +330,10 @@ export function createHandler({
       out = await attempt()
     }
     if (out.error) {
+      console.error('gemini-error', model, out.error?.name)
       return fallback(out.error && out.error.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK')
     }
+    if (out.r.ok === false) console.error('gemini-status', model, out.r.status)
     if (!out.r.ok) return fallback(reasonForStatus(out.r.status))
     const analysis = parseAiResponse(out.json)
     if (!analysis) return fallback('INVALID_RESPONSE')
