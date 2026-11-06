@@ -13,6 +13,7 @@ export type AccountOutcome =
   | { state: 'UNAVAILABLE'; message: string }
 
 export const TESTNET_RPC = 'https://rpc.testnet.near.org'
+export const MAINNET_RPC = 'https://rpc.mainnet.near.org'
 const NO_CONTRACT = '11111111111111111111111111111111'
 const NAME = /^[a-z0-9]+([-_.][a-z0-9]+)*$/
 
@@ -103,4 +104,16 @@ export async function lookupAccount(
     }
   }
   return { state: 'UNAVAILABLE', message: last }
+}
+
+export async function lookupBothNetworks(account: string): Promise<{
+  mainnet: AccountOutcome
+  testnet: AccountOutcome
+}> {
+  const [mainnet, testnet] = await Promise.all([
+    lookupAccount(account, { rpc: MAINNET_RPC }),
+    lookupAccount(account, { rpc: TESTNET_RPC }),
+  ])
+
+  return { mainnet, testnet }
 }

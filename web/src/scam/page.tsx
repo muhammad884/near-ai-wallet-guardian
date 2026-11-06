@@ -5,9 +5,9 @@ import { addEvent } from '../log/store'
 import { askGemini } from '../ai/client'
 import type { AiOutcome } from '../ai/client'
 import { AiPanel } from '../ai/panel'
-import { lookupAccount } from '../chain/account'
+import { lookupBothNetworks } from '../chain/account'
 import type { AccountOutcome } from '../chain/account'
-import { ChainPanel } from '../chain/panel'
+import { DualChainPanel } from '../chain/panel'
 
 export function ScamDetector() {
   const [account, setAccount] = useState('')
@@ -15,7 +15,7 @@ export function ScamDetector() {
   const [ai, setAi] = useState<AiOutcome | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const latest = useRef('')
-  const [chain, setChain] = useState<AccountOutcome | null>(null)
+  const [chain, setChain] = useState<{ mainnet: AccountOutcome; testnet: AccountOutcome } | null>(null)
 
   function run() {
     if (account.trim() === '') return
@@ -26,8 +26,8 @@ export function ScamDetector() {
     setChain(null)
     if (r.level !== 'INVALID') {
       const target = r.account
-      lookupAccount(target).then((c) => {
-        if (latest.current === target) setChain(c)
+      lookupBothNetworks(target).then((checks) => {
+        if (latest.current === target) setChain(checks)
       })
     }
     addEvent({
@@ -100,7 +100,7 @@ export function ScamDetector() {
         </div>
       )}
 
-      {report && report.level !== 'INVALID' && <ChainPanel outcome={chain} />}
+      {report && report.level !== 'INVALID' && <DualChainPanel outcomes={chain} />}
 
       {report && report.level !== 'INVALID' && (
         <AiPanel outcome={ai} loading={aiLoading} onAsk={askAi} policyVerdict={null} />

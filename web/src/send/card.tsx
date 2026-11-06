@@ -47,6 +47,7 @@ export function SendCard({ account }: { account: string }) {
 
   useEffect(() => {
     loadBalance()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- known warning, left as is on purpose to avoid re-running wallet effects
   }, [account])
 
   function runCheck() {

@@ -29,10 +29,9 @@ const WORDS = [
 ]
 
 export const NOT_CHECKED = [
-  'Whether the account exists',
-  'Account age and balance',
+  'Account age (Mainnet and Testnet checks show balances, not account creation dates)',
   'Transaction history',
-  'Smart contract code',
+  'Smart contract source code and security',
   'Reports from the community or other scam lists',
 ]
 
@@ -113,7 +112,7 @@ export function analyze(raw: string): ScamReport {
   const base = {
     account,
     notChecked: NOT_CHECKED,
-    source: 'Fixed rules written by hand. Nothing was read from the blockchain.',
+    source: 'Fixed rules written by hand. Nothing in this rule score was read from the blockchain.',
   }
 
   const implicit = /^[0-9a-f]{64}$/.test(account)

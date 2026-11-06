@@ -147,7 +147,7 @@ Reachability: our own source does not import decode-uri-component, query-string,
 
 ## Tests
 
-Run all automated tests from the `web` folder (112 tests at the time of writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy, browser storage, and the Gemini endpoint and client):
+Run all automated tests from the `web` folder (120 tests at the time of writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy, browser storage, and the Gemini endpoint and client):
 
     cd web
     node --test tests/*.test.ts
@@ -167,3 +167,7 @@ Hackathon window: every commit in this repository is from 31 October 2026 or lat
 ## License
 
 MIT
+
+## On-chain account check (testnet)
+
+The Scam Detector also asks the NEAR testnet RPC (`view_account`) whether the account exists, what its balance is, and whether a contract is deployed. These facts are shown next to the rule result. They do not change the score and do not prove an account is safe. If the RPC cannot be reached, the app says so and concludes nothing. Mainnet is not checked. The "account found" and "account not found" cases were checked by hand on a Vercel Preview with real testnet RPC. The RPC-failure case is covered by unit tests with mocked responses.
