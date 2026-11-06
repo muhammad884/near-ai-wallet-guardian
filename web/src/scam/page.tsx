@@ -38,6 +38,21 @@ function readNearBlocksText(value: unknown): string {
     : ''
 }
 
+function formatNearBlocksTimestamp(value: unknown): string {
+  const raw = readNearBlocksText(value)
+  if (!/^\d+$/.test(raw)) return 'Unavailable'
+
+  try {
+    const milliseconds = Number(BigInt(raw) / 1000000n)
+    const date = new Date(milliseconds)
+    return Number.isNaN(date.getTime())
+      ? 'Unavailable'
+      : date.toLocaleString()
+  } catch {
+    return 'Unavailable'
+  }
+}
+
 export function ScamDetector() {
   const [account, setAccount] = useState('')
   const [report, setReport] = useState<ScamReport | null>(null)
@@ -193,6 +208,50 @@ export function ScamDetector() {
                 (outcomes as NearBlocksRow).status === false
             }).length
 
+      const unknownStatus = Math.max(0, transactions.length - successful - failed)
+      const counterparties = new Set<string>()
+      const methodsSeen = new Set<string>()
+      const timestamps: string[] = []
+      const accountId = readNearBlocksText(item.account)
+
+      for (const tx of transactions) {
+        const signer = readNearBlocksText(tx.signer_account_id)
+        const receiver = readNearBlocksText(tx.receiver_account_id)
+
+        if (signer && signer !== accountId) counterparties.add(signer)
+        if (receiver && receiver !== accountId) counterparties.add(receiver)
+
+        const actions = Array.isArray(tx.actions) ? tx.actions : []
+        for (const action of actions) {
+          if (!action || typeof action !== 'object') continue
+          const method = readNearBlocksText(
+            (action as NearBlocksRow).method || (action as NearBlocksRow).action,
+          )
+          if (method) methodsSeen.add(method)
+        }
+
+        const block = tx.block && typeof tx.block === 'object'
+          ? tx.block as NearBlocksRow
+          : {}
+        const rawTimestamp = readNearBlocksText(
+          tx.block_timestamp || block.block_timestamp,
+        )
+        if (/^[0-9]+$/.test(rawTimestamp)) timestamps.push(rawTimestamp)
+      }
+
+      timestamps.sort((a, b) => {
+        const first = BigInt(a)
+        const second = BigInt(b)
+        return first < second ? -1 : first > second ? 1 : 0
+      })
+
+      const earliestTimestamp = timestamps.length
+        ? formatNearBlocksTimestamp(timestamps[0])
+        : 'Unavailable'
+      const latestTimestamp = timestamps.length
+        ? formatNearBlocksTimestamp(timestamps[timestamps.length - 1])
+        : 'Unavailable'
+
             return (
               <div key={item.network} style={{ marginTop: 16 }}>
                 <h3>{item.network.toUpperCase()}</h3>
@@ -210,6 +269,34 @@ export function ScamDetector() {
                   <span>Failed transactions</span>
                   <strong>{failed}</strong>
                 </div>
+            <div className="row">
+              <span>Unknown transaction status</span>
+              <strong>{unknownStatus}</strong>
+            </div>
+            <div className="row">
+              <span>Unique counterparties</span>
+              <strong>{counterparties.size}</strong>
+            </div>
+            <div className="row">
+              <span>Distinct action methods</span>
+              <strong>{methodsSeen.size}</strong>
+            </div>
+            <div className="row">
+              <span>Methods seen</span>
+              <strong>{Array.from(methodsSeen).join(', ') || 'Unavailable'}</strong>
+            </div>
+            <div className="row">
+              <span>Earliest timestamp in returned records</span>
+              <strong>{earliestTimestamp}</strong>
+            </div>
+            <div className="row">
+              <span>Latest timestamp in returned records</span>
+              <strong>{latestTimestamp}</strong>
+            </div>
+            <p className="muted">
+              Summary covers only the {transactions.length} records returned by NearBlocks,
+              not the complete account history. Failed transactions are not proof of scam.
+            </p>
                 <p className="muted">HTTP status: {item.transactions.status}</p>
 
                 {transactions.slice(0, 5).map((tx, index) => {
