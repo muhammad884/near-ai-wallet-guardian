@@ -64,6 +64,23 @@ function collect(account: string): Signal[] {
   for (const k of KNOWN) {
     if (account === k) continue
     const d = distance(account, k)
+    const knownBase = k.endsWith('.near') ? k.slice(0, -5) : k
+    const candidateBase = account.endsWith('.near')
+      ? account.slice(0, -5)
+      : account
+
+    const nearSuffixImpersonation =
+      candidateBase === knownBase + '-near' ||
+      candidateBase === knownBase + '_near'
+
+    if (nearSuffixImpersonation) {
+      add(
+        50,
+        'Looks like an imitation of "' + k + '".',
+        'The name adds "-near" or "_near" before the .near suffix.',
+      )
+    }
+
     if (d === 1 || (d === 2 && k.length >= 9)) {
       add(
         50,
