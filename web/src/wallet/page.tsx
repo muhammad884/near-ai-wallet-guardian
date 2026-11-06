@@ -35,6 +35,7 @@ function Inner() {
       }
     }, 1200)
     return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- known warning, left as is on purpose to avoid re-running wallet effects
   }, [signIn])
   async function connectMeteor() {
     try {
