@@ -30,7 +30,7 @@ export function resetStorageForTests(): void {
 
 export function loadJson(key: string): unknown {
   const k = PREFIX + key
-  let raw: string | null = null
+  let raw: string | null
   try {
     raw = backend()?.getItem(k) ?? memory.get(k) ?? null
   } catch {
