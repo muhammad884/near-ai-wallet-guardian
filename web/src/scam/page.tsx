@@ -5,6 +5,9 @@ import { addEvent } from '../log/store'
 import { askGemini } from '../ai/client'
 import type { AiOutcome } from '../ai/client'
 import { AiPanel } from '../ai/panel'
+import { lookupAccount } from '../chain/account'
+import type { AccountOutcome } from '../chain/account'
+import { ChainPanel } from '../chain/panel'
 
 export function ScamDetector() {
   const [account, setAccount] = useState('')
@@ -12,6 +15,7 @@ export function ScamDetector() {
   const [ai, setAi] = useState<AiOutcome | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const latest = useRef('')
+  const [chain, setChain] = useState<AccountOutcome | null>(null)
 
   function run() {
     if (account.trim() === '') return
@@ -19,6 +23,13 @@ export function ScamDetector() {
     latest.current = r.account
     setReport(r)
     setAi(null)
+    setChain(null)
+    if (r.level !== 'INVALID') {
+      const target = r.account
+      lookupAccount(target).then((c) => {
+        if (latest.current === target) setChain(c)
+      })
+    }
     addEvent({
       source: 'Scam Detector',
       summary: r.account,
@@ -88,6 +99,8 @@ export function ScamDetector() {
           </div>
         </div>
       )}
+
+      {report && report.level !== 'INVALID' && <ChainPanel outcome={chain} />}
 
       {report && report.level !== 'INVALID' && (
         <AiPanel outcome={ai} loading={aiLoading} onAsk={askAi} policyVerdict={null} />
