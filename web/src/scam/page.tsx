@@ -8,6 +8,8 @@ import { AiPanel } from '../ai/panel'
 import { lookupBothNetworks } from '../chain/account'
 import type { AccountOutcome } from '../chain/account'
 import { DualChainPanel } from '../chain/panel'
+import { getNearBlocksAccount } from './nearblocks'
+import type { NearBlocksAccountData } from './nearblocks'
 
 export function ScamDetector() {
   const [account, setAccount] = useState('')
@@ -17,19 +19,50 @@ export function ScamDetector() {
   const latest = useRef('')
   const [chain, setChain] = useState<{ mainnet: AccountOutcome; testnet: AccountOutcome } | null>(null)
 
+  const [indexed, setIndexed] = useState<NearBlocksAccountData[] | null>(null)
+  const [indexedLoading, setIndexedLoading] = useState(false)
+  const [indexedError, setIndexedError] = useState('')
+
   function run() {
     if (account.trim() === '') return
+
     const r = analyze(account)
     latest.current = r.account
     setReport(r)
     setAi(null)
     setChain(null)
+    setIndexed(null)
+    setIndexedError('')
+
     if (r.level !== 'INVALID') {
       const target = r.account
+      setIndexedLoading(true)
+
+      Promise.all([
+        getNearBlocksAccount(target, 'mainnet'),
+        getNearBlocksAccount(target, 'testnet'),
+      ])
+        .then((data) => {
+          if (latest.current === target) setIndexed(data)
+        })
+        .catch((error: unknown) => {
+          if (latest.current === target) {
+            setIndexedError(
+              error instanceof Error ? error.message : 'NearBlocks request failed',
+            )
+          }
+        })
+        .finally(() => {
+          if (latest.current === target) setIndexedLoading(false)
+        })
+
       lookupBothNetworks(target).then((checks) => {
         if (latest.current === target) setChain(checks)
       })
+    } else {
+      setIndexedLoading(false)
     }
+
     addEvent({
       source: 'Scam Detector',
       summary: r.account,
@@ -101,6 +134,52 @@ export function ScamDetector() {
       )}
 
       {report && report.level !== 'INVALID' && <DualChainPanel outcomes={chain} />}
+
+      {report && report.level !== 'INVALID' && (
+        <div className="card" style={{ marginTop: 12 }}>
+          <h2>NEAR Blockchain Intelligence</h2>
+          <p className="muted">
+            Transaction and contract information from NearBlocks.
+            These records are evidence for review, not proof of a scam.
+          </p>
+
+          {indexedLoading && <p className="muted">Loading Mainnet and Testnet data...</p>}
+
+          {indexedError && (
+            <p className="muted">NearBlocks error: {indexedError}</p>
+          )}
+
+          {indexed?.map((item) => (
+            <div key={item.network} style={{ marginTop: 16 }}>
+              <h3>{item.network.toUpperCase()}</h3>
+
+              <h4>Recent transactions</h4>
+              <p className="muted">
+                HTTP status: {item.transactions.status}
+              </p>
+              <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                {JSON.stringify(item.transactions.data, null, 2)}
+              </pre>
+
+              <h4>Contract information</h4>
+              <p className="muted">
+                HTTP status: {item.contract.status}
+              </p>
+              <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                {JSON.stringify(item.contract.data, null, 2)}
+              </pre>
+
+              <h4>Contract deployments</h4>
+              <p className="muted">
+                HTTP status: {item.deployments.status}
+              </p>
+              <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                {JSON.stringify(item.deployments.data, null, 2)}
+              </pre>
+            </div>
+          ))}
+        </div>
+      )}
 
       {report && report.level !== 'INVALID' && (
         <AiPanel outcome={ai} loading={aiLoading} onAsk={askAi} policyVerdict={null} />
