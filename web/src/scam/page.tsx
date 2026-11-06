@@ -11,6 +11,33 @@ import { DualChainPanel } from '../chain/panel'
 import { getNearBlocksAccount } from './nearblocks'
 import type { NearBlocksAccountData } from './nearblocks'
 
+type NearBlocksRow = Record<string, unknown>
+
+function getNearBlocksRows(value: unknown): NearBlocksRow[] {
+  if (!value || typeof value !== 'object') return []
+  const root = value as NearBlocksRow
+  const data = root.data
+
+  if (Array.isArray(data)) {
+    return data.filter(
+      (item): item is NearBlocksRow =>
+        !!item && typeof item === 'object',
+    )
+  }
+
+  if (data && typeof data === 'object') {
+    return [data as NearBlocksRow]
+  }
+
+  return []
+}
+
+function readNearBlocksText(value: unknown): string {
+  return typeof value === 'string' || typeof value === 'number'
+    ? String(value)
+    : ''
+}
+
 export function ScamDetector() {
   const [account, setAccount] = useState('')
   const [report, setReport] = useState<ScamReport | null>(null)
@@ -149,35 +176,117 @@ export function ScamDetector() {
             <p className="muted">NearBlocks error: {indexedError}</p>
           )}
 
-          {indexed?.map((item) => (
-            <div key={item.network} style={{ marginTop: 16 }}>
-              <h3>{item.network.toUpperCase()}</h3>
+          {indexed?.map((item) => {
+            const transactions = getNearBlocksRows(item.transactions.data)
+            const contracts = getNearBlocksRows(item.contract.data)
+            const deployments = getNearBlocksRows(item.deployments.data)
 
-              <h4>Recent transactions</h4>
-              <p className="muted">
-                HTTP status: {item.transactions.status}
-              </p>
-              <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                {JSON.stringify(item.transactions.data, null, 2)}
-              </pre>
+            const successful = transactions.filter((tx) => {
+              const outcomes = tx.outcomes
+              return !!outcomes && typeof outcomes === 'object' &&
+                (outcomes as NearBlocksRow).status === true
+            }).length
 
-              <h4>Contract information</h4>
-              <p className="muted">
-                HTTP status: {item.contract.status}
-              </p>
-              <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                {JSON.stringify(item.contract.data, null, 2)}
-              </pre>
+            const failed = transactions.filter((tx) => {
+              const outcomes = tx.outcomes
+              return !!outcomes && typeof outcomes === 'object' &&
+                (outcomes as NearBlocksRow).status === false
+            }).length
 
-              <h4>Contract deployments</h4>
-              <p className="muted">
-                HTTP status: {item.deployments.status}
-              </p>
-              <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                {JSON.stringify(item.deployments.data, null, 2)}
-              </pre>
-            </div>
-          ))}
+            return (
+              <div key={item.network} style={{ marginTop: 16 }}>
+                <h3>{item.network.toUpperCase()}</h3>
+
+                <h4>Recent transactions</h4>
+                <div className="row">
+                  <span>Transactions returned</span>
+                  <strong>{transactions.length}</strong>
+                </div>
+                <div className="row">
+                  <span>Successful transactions</span>
+                  <strong>{successful}</strong>
+                </div>
+                <div className="row">
+                  <span>Failed transactions</span>
+                  <strong>{failed}</strong>
+                </div>
+                <p className="muted">HTTP status: {item.transactions.status}</p>
+
+                {transactions.slice(0, 5).map((tx, index) => {
+                  const outcomes = tx.outcomes && typeof tx.outcomes === 'object'
+                    ? tx.outcomes as NearBlocksRow
+                    : {}
+                  const actions = Array.isArray(tx.actions) ? tx.actions : []
+                  const methods = actions.map((action) => {
+                    if (!action || typeof action !== 'object') return ''
+                    return readNearBlocksText(
+                      (action as NearBlocksRow).method ||
+                      (action as NearBlocksRow).action,
+                    )
+                  }).filter(Boolean).join(', ')
+
+                  const hash = readNearBlocksText(tx.transaction_hash)
+
+                  return (
+                    <div className="row" key={hash || index}>
+                      <span>
+                        <strong>{readNearBlocksText(tx.signer_account_id) || 'Unknown signer'}</strong>
+                        {' → '}
+                        {readNearBlocksText(tx.receiver_account_id) || 'Unknown receiver'}
+                        <br />
+                        <span className="muted">
+                          {methods || 'Transaction'} · {
+                            outcomes.status === true ? 'Success' :
+                            outcomes.status === false ? 'Failed' : 'Status unavailable'
+                          }
+                        </span>
+                      </span>
+                      <span className="muted">
+                        {hash ? hash.slice(0, 12) + '…' : ''}
+                      </span>
+                    </div>
+                  )
+                })}
+
+                {transactions.length === 0 && (
+                  <p className="muted">No transaction records returned.</p>
+                )}
+
+                <details>
+                  <summary>View raw transaction data</summary>
+                  <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                    {JSON.stringify(item.transactions.data, null, 2)}
+                  </pre>
+                </details>
+
+                <h4>Contract information</h4>
+                <div className="row">
+                  <span>Contract records returned</span>
+                  <strong>{contracts.length}</strong>
+                </div>
+                <p className="muted">HTTP status: {item.contract.status}</p>
+                <details>
+                  <summary>View contract details</summary>
+                  <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                    {JSON.stringify(item.contract.data, null, 2)}
+                  </pre>
+                </details>
+
+                <h4>Contract deployments</h4>
+                <div className="row">
+                  <span>Deployment records returned</span>
+                  <strong>{deployments.length}</strong>
+                </div>
+                <p className="muted">HTTP status: {item.deployments.status}</p>
+                <details>
+                  <summary>View deployment details</summary>
+                  <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                    {JSON.stringify(item.deployments.data, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            )
+          })}
         </div>
       )}
 
