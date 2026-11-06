@@ -29,10 +29,9 @@ const WORDS = [
 ]
 
 export const NOT_CHECKED = [
-  'Whether the account exists on mainnet (the card below checks testnet only)',
-  'Account age (the card below shows the testnet balance)',
+  'Account age (Mainnet and Testnet checks show balances, not account creation dates)',
   'Transaction history',
-  'Smart contract code',
+  'Smart contract source code and security',
   'Reports from the community or other scam lists',
 ]
 
