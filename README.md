@@ -34,6 +34,99 @@ This is a work in progress. This table is the honest state of every part.
 | Settings | Light or dark theme and clearing the decision history. |
 | On-chain enforcement | Not built yet. See below. |
 
+## Manual Testing & Production Verification
+
+The deployed application was manually reviewed by the author in a browser using NEAR Testnet and read-only Mainnet checks. These checks complement automated tests; they are not a formal security audit.
+
+### Automated tests and code checks
+
+| Check | Result |
+|---|---|
+| Automated test suite | 128 passed, 0 failed |
+| TypeScript | `npx tsc --noEmit` passed |
+| ESLint | `npm run lint` passed |
+| Production build | `npm run build` passed |
+| Gemini endpoint and client tests | Covered using a fake Gemini service; no real API key or network required |
+
+### Manual application tests
+
+| Feature | What was checked | Result |
+|---|---|---|
+| Meteor Wallet | Connected a Testnet wallet and displayed the account ID. | Passed |
+| Wallet balance | Displayed the connected account's Testnet balance. | Passed |
+| Send NEAR validation | Zero amount was rejected. | Passed |
+| Send NEAR policy checks | Transfers above configured transaction, daily and agent limits were blocked before the wallet was asked to sign. | Passed |
+| Spending Limits | A test transaction exceeding the agent limit and using a contract outside the allowed list was blocked. | Passed |
+| Transaction Scanner | Reviewed rule-based transaction risk results. | Passed |
+| Scam Detector | Checked `wrappp.near` and `wrap.near`; the lookalike received a warning while the canonical name had no spelling warning. | Passed |
+| Mainnet and Testnet checks | Reviewed account existence, balance, contract and NearBlocks evidence. | Passed |
+| Gemini second opinion | Received a separate advisory response for `wrap.near`; it did not change the rule-based result. | Passed |
+| AI Agents | Created and displayed an enabled saved agent profile. | Passed |
+| Permissions | Verified the explanation of protocol-enforced key restrictions versus app-only controls. | Passed |
+| Activity History | Confirmed decisions appeared in browser-local history. | Passed |
+| Security Alerts | Confirmed alerts reflected recorded decisions. | Passed |
+| Settings | Reviewed theme and decision-history settings. | Passed |
+
+### Important test qualifications
+
+- The latest restrictive Send NEAR checks were blocked before the wallet was asked to sign. No transaction was signed or sent during those checks.
+- A policy decision is enforced by this application flow, not by the NEAR blockchain. A user can still transfer directly from their wallet outside this app.
+- The Scam Detector's spelling score is not a security verdict. The displayed blockchain and NearBlocks information is limited to the data returned by those sources.
+- The `wrap.near` review showed 10 sampled successful Mainnet transactions and 10 sampled failed Testnet transactions. These are samples, not complete account histories. Failed Testnet transactions do not prove malicious activity.
+- The Gemini result for `wrap.near` was 15/100, LOW risk, with MEDIUM confidence. It was advisory only and did not establish that the account or contract is safe.
+- AI Agent profiles are saved settings only. They do not run an autonomous agent or control a wallet key.
+- Permissions were reviewed as explanatory information. The app does not create, add, or revoke Function-call Keys.
+
+## Feature Roadmap
+
+The roadmap separates existing app features from work that has not yet been implemented.
+
+### Phase 1 — Core wallet security experience
+<badge color="success">Core app features implemented</badge>
+
+- Rule-based transaction policy engine.
+- Transaction Scanner and risk explanations.
+- Scam Detector with separate NEAR RPC and NearBlocks evidence.
+- Optional Gemini advisory opinions.
+- NEAR Testnet wallet connection and Send NEAR review flow.
+- App-level spending limits and approval checks.
+- Browser-local agent profiles, activity history and security alerts.
+- Dashboard, permissions explanations and settings.
+
+### Phase 2 — NEAR protocol-level key protection
+<badge color="warning">Planned — not implemented</badge>
+
+- Design a safe Function-call Key creation and management flow.
+- Restrict agent keys to one approved contract and permitted methods.
+- Avoid giving agents Full-Access Keys.
+- Test key permissions, allowance handling, revocation and failure cases.
+
+### Phase 3 — On-chain spending controls
+<badge color="warning">Planned — design required</badge>
+
+- Research and design a smart-contract-based spending control system.
+- Define how transaction limits and agent permissions would be enforced on chain.
+- Review the design for security before implementation.
+- Do not treat the current browser policy engine as on-chain enforcement.
+
+### Phase 4 — AI Agent integration
+<badge color="warning">Future work</badge>
+
+- Explore connecting real AI agents to restricted wallet permissions.
+- Require explicit user-configured permissions.
+- Keep transaction review, limits and security boundaries clear.
+- Test agent behavior without exposing seed phrases or Full-Access Keys.
+
+### Phase 5 — Advanced security and reliability
+<badge color="warning">Future work</badge>
+
+- Improve contract and transaction risk analysis.
+- Explore additional threat-intelligence sources.
+- Improve monitoring, error handling and security testing.
+- Review dependencies and wallet integration as upstream packages evolve.
+
+Roadmap items are proposals, not completed features or guarantees. Their implementation depends on security design, testing and review.
+
 ## About enforcement (read this)
 
 Today every rule in this app is applied by code running in your browser. The app can show APPROVED, REQUIRES_APPROVAL or BLOCKED, but it does not stop anything on the NEAR blockchain. Removing an agent in the app does not revoke any key on chain. The app does not claim otherwise.
@@ -151,7 +244,7 @@ Reachability: our own source does not import decode-uri-component, query-string,
 
 ## Tests
 
-Run all automated tests from the `web` folder (120 tests at the time of writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy, browser storage, and the Gemini endpoint and client):
+Run all automated tests from the `web` folder (128 tests at the time of writing: policy engine, scanner, agents, scam rules, key parsing, policy settings, send checks, central policy, browser storage, and the Gemini endpoint and client):
 
     cd web
     node --test tests/*.test.ts
