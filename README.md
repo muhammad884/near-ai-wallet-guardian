@@ -254,6 +254,9 @@ Setup for maintainers:
 
 Checks: automated tests cover the endpoint and the client with a fake Gemini (no network and no key): input checks, secret refusal, answer validation, every fallback path, no key in any response, rate limits, and that the policy verdict cannot change. On 2026-11-05 the author checked by hand with a real key that a Gemini answer is shown for an account and for a transaction, that a blocked verdict stays blocked, and that the key string does not appear in the served JavaScript.
 
+
+Update 2026-11-07: Google's docs say Gemini 3.6 Flash and Gemini 3.5 Flash-Lite no longer accept the sampling parameters `temperature`, `top_p` and `top_k`. We removed `temperature` (the only one we used) from the request in `web/api/analyze.js`. No automated test depended on it.
+
 ## Dependency audit
 
 Run on 2026-11-05 with npm audit (the full report).
