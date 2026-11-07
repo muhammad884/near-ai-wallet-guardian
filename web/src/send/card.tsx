@@ -165,9 +165,9 @@ export function SendCard({ account }: { account: string }) {
           <strong>{balance === null ? 'unknown' : yoctoToNear(balance) + ' NEAR'}</strong>
         </div>
         <label className="muted">Recipient (testnet account)</label>
-        <input className="field" value={receiver} onChange={(e) => setReceiver(e.target.value)} placeholder="friend.testnet" />
+        <input className="field" value={receiver} onChange={(e) => { setReceiver(e.target.value); setRawReview(null); setAgreed(false) }} placeholder="friend.testnet" />
         <label className="muted">Amount (NEAR)</label>
-        <input className="field" value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.1" />
+        <input className="field" value={amount} onChange={(e) => { setAmount(e.target.value); setRawReview(null); setAgreed(false) }} inputMode="decimal" placeholder="0.1" />
         {error && <div className="bad">{error}</div>}
         <button className="btn" onClick={runCheck} disabled={pending}>Review and check</button>
       </div>
