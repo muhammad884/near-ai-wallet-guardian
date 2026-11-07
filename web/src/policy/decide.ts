@@ -1,7 +1,7 @@
 import { scan } from '../scanner/risk.ts'
 import type { ScanInput, ScanResult } from '../scanner/risk.ts'
 import { getActivePolicy } from './active.ts'
-import { getSentTotal } from '../send/session.ts'
+import { getAgentSentTotal, getSentTotal } from '../send/session.ts'
 import type { Decision as Verdict, Policy, Usage } from './types'
 
 export type PolicyDecision = ScanResult & {
@@ -11,9 +11,9 @@ export type PolicyDecision = ScanResult & {
   rules: string[]
 }
 
-export function currentUsage(): Usage {
+export function currentUsage(agentId = 'you'): Usage {
   const sent = getSentTotal()
-  return { totalToday: sent, agentToday: sent }
+  return { totalToday: sent, agentToday: getAgentSentTotal(agentId) }
 }
 
 export function describeRules(p: Policy): string[] {
@@ -33,7 +33,7 @@ export function decide(
   opts: { policy?: Policy; agentEnabled?: boolean; usage?: Usage } = {},
 ): PolicyDecision {
   const policy = opts.policy ?? getActivePolicy()
-  const usage = opts.usage ?? currentUsage()
+  const usage = opts.usage ?? currentUsage(tx.agentId)
   const r = scan(policy, opts.agentEnabled ?? true, tx, usage)
   return {
     ...r,

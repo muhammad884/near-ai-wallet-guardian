@@ -13,6 +13,7 @@ import { actionCreators } from '@near-js/transactions'
 const EXPLORER = 'https://testnet.nearblocks.io'
 
 type Review = {
+  sender: string
   receiver: string
   amountText: string
   yocto: bigint
@@ -32,7 +33,8 @@ export function SendCard({ account }: { account: string }) {
   const [receiver, setReceiver] = useState('')
   const [amount, setAmount] = useState('')
   const [error, setError] = useState('')
-  const [review, setReview] = useState<Review | null>(null)
+  const [rawReview, setRawReview] = useState<Review | null>(null)
+  const review = rawReview?.sender === account ? rawReview : null
   const [agreed, setAgreed] = useState(false)
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
@@ -54,7 +56,7 @@ export function SendCard({ account }: { account: string }) {
     setError('')
     setMessage('')
     setDone(null)
-    setReview(null)
+    setRawReview(null)
     setAgreed(false)
     const c = checkSend(account, receiver, amount, balance)
     if (!c.ok) {
@@ -68,11 +70,17 @@ export function SendCard({ account }: { account: string }) {
       'verdict',
       `Review: ${amount.trim()} NEAR to ${to}`,
     )
-    setReview({ receiver: to, amountText: amount.trim(), yocto: c.yocto, result })
+    setRawReview({ sender: account, receiver: to, amountText: amount.trim(), yocto: c.yocto, result })
   }
 
   async function send() {
     if (!review || pending || busy.current) return
+    if (review.sender !== account) {
+      setRawReview(null)
+      setAgreed(false)
+      setMessage('The connected wallet changed. Review the transaction again.')
+      return
+    }
     const fresh = decide({
       agentId: 'you',
       receiver: review.receiver,
@@ -118,7 +126,7 @@ export function SendCard({ account }: { account: string }) {
         amountText: r.amountText,
         time: new Date().toISOString(),
       })
-      setReview(null)
+      setRawReview(null)
       loadBalance()
     } catch (e) {
       setMessage(
