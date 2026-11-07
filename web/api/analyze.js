@@ -380,7 +380,6 @@ export function createHandler({
             generationConfig: {
               responseMimeType: 'application/json',
               responseJsonSchema: RESPONSE_SCHEMA,
-              temperature: 0.2,
               maxOutputTokens: 4096,
             },
           }),
