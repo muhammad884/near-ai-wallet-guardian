@@ -61,3 +61,46 @@ test('key-management methods are always restricted, without duplicates', () => {
     assert.equal(new Set(list).size, list.length)
   }
 })
+
+test('policy preserves exact 24-decimal limits', () => {
+  const result = buildPolicy({
+    maxPerTx: '0.000000000000000000000003',
+    maxDaily: '0.000000000000000000000009',
+    maxPerAgentDaily: '0.000000000000000000000006',
+    approvalAbove: '0.000000000000000000000002',
+    contracts: '',
+    methods: '',
+    restricted: '',
+  })
+  assert.equal(result.ok, true)
+  if (result.ok) {
+    assert.equal(result.policy.maxPerTxExact, '0.000000000000000000000003')
+    assert.equal(result.policy.maxDailyExact, '0.000000000000000000000009')
+  }
+})
+
+test('policy rejects a 25-decimal limit', () => {
+  const result = buildPolicy({
+    maxPerTx: '0.0000000000000000000000001',
+    maxDaily: '1',
+    maxPerAgentDaily: '1',
+    approvalAbove: '0',
+    contracts: '',
+    methods: '',
+    restricted: '',
+  })
+  assert.equal(result.ok, false)
+})
+
+test('policy compares exact limits without floating-point rounding', () => {
+  const result = buildPolicy({
+    maxPerTx: '1.000000000000000000000001',
+    maxDaily: '1.000000000000000000000000',
+    maxPerAgentDaily: '1',
+    approvalAbove: '0',
+    contracts: '',
+    methods: '',
+    restricted: '',
+  })
+  assert.equal(result.ok, false)
+})

@@ -1,7 +1,7 @@
 import { scan } from '../scanner/risk.ts'
 import type { ScanInput, ScanResult } from '../scanner/risk.ts'
 import { getActivePolicy } from './active.ts'
-import { getAgentSentTotal, getSentTotal } from '../send/session.ts'
+import { getAgentSentTotal, getSentTotal, getAgentSentTotalExact, getSentTotalExact } from '../send/session.ts'
 import type { Decision as Verdict, Policy, Usage } from './types'
 
 export type PolicyDecision = ScanResult & {
@@ -13,15 +13,29 @@ export type PolicyDecision = ScanResult & {
 
 export function currentUsage(agentId = 'you'): Usage {
   const sent = getSentTotal()
-  return { totalToday: sent, agentToday: getAgentSentTotal(agentId) }
+  const agentSent = getAgentSentTotal(agentId)
+  const totalExact = getSentTotalExact()
+  const agentExact = getAgentSentTotalExact(agentId)
+
+  const usage: Usage = {
+    totalToday: sent,
+    agentToday: agentSent,
+  }
+
+  if (totalExact !== String(sent) || agentExact !== String(agentSent)) {
+    usage.totalTodayExact = totalExact
+    usage.agentTodayExact = agentExact
+  }
+
+  return usage
 }
 
 export function describeRules(p: Policy): string[] {
   return [
-    `Max ${p.maxPerTx} NEAR per transaction`,
-    `Max ${p.maxDaily} NEAR per day`,
-    `Max ${p.maxPerAgentDaily} NEAR per agent per day`,
-    `Owner approval needed above ${p.approvalAbove} NEAR`,
+    `Max ${p.maxPerTxExact ?? p.maxPerTx} NEAR per transaction`,
+    `Max ${p.maxDailyExact ?? p.maxDaily} NEAR per day`,
+    `Max ${p.maxPerAgentDailyExact ?? p.maxPerAgentDaily} NEAR per agent per day`,
+    `Owner approval needed above ${p.approvalAboveExact ?? p.approvalAbove} NEAR`,
     `Allowed contracts: ${p.allowedContracts.join(', ') || 'none'}`,
     `Allowed methods: ${p.allowedMethods.join(', ') || 'none'}`,
     `Restricted methods: ${p.restrictedMethods.join(', ')}`,

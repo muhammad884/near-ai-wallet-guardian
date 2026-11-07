@@ -51,6 +51,7 @@ export function Limits() {
         agentId: 'demo-agent',
         receiver: receiver.trim(),
         amount: Number(amount),
+        amountText: amount.trim(),
         method: method.trim() || undefined,
       },
       'verdict',

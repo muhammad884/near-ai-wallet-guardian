@@ -1,5 +1,6 @@
 import type { Policy } from './types'
 import { splitList } from '../agents/model.ts'
+import { decimalToYocto, yoctoToDecimal } from './amount.ts'
 
 export type PolicyInput = {
   maxPerTx: string
@@ -24,32 +25,43 @@ const ALWAYS_RESTRICTED = [
   'delete_account',
 ]
 
-function num(text: string): number {
-  return text.trim() === '' ? Number.NaN : Number(text)
-}
-
 export function buildPolicy(input: PolicyInput): BuildResult {
-  const maxPerTx = num(input.maxPerTx)
-  const maxDaily = num(input.maxDaily)
-  const maxPerAgentDaily = num(input.maxPerAgentDaily)
-  const approvalAbove = num(input.approvalAbove)
+  const values = [
+    input.maxPerTx,
+    input.maxDaily,
+    input.maxPerAgentDaily,
+    input.approvalAbove,
+  ]
 
-  for (const n of [maxPerTx, maxDaily, maxPerAgentDaily, approvalAbove]) {
-    if (!Number.isFinite(n) || n < 0) {
-      return { ok: false, error: 'Every limit must be a number of 0 or more.' }
+  const exact = values.map(decimalToYocto)
+
+  if (exact.some((value) => value === null)) {
+    return {
+      ok: false,
+      error: 'Every limit must be a valid NEAR amount with up to 24 decimals.',
     }
   }
-  if (maxPerTx > maxDaily) {
+
+  const [maxTx, daily, agentDaily, approval] = exact as bigint[]
+
+  if (values.some((value) => !Number.isFinite(Number(value)))) {
+    return { ok: false, error: 'Every limit must be a finite number.' }
+  }
+
+  if (maxTx > daily) {
     return { ok: false, error: 'The per-transaction limit cannot be above the daily limit.' }
   }
-  if (maxPerAgentDaily > maxDaily) {
+
+  if (agentDaily > daily) {
     return { ok: false, error: 'The per-agent daily limit cannot be above the daily limit.' }
   }
-  if (approvalAbove > maxPerTx) {
+
+  if (approval > maxTx) {
     return { ok: false, error: 'The approval threshold cannot be above the per-transaction limit.' }
   }
 
   const allowedContracts = splitList(input.contracts)
+
   for (const c of allowedContracts) {
     if (c.length < 2 || c.length > 64 || !ACCOUNT_ID.test(c)) {
       return { ok: false, error: `"${c}" is not a valid NEAR account ID.` }
@@ -63,10 +75,14 @@ export function buildPolicy(input: PolicyInput): BuildResult {
   return {
     ok: true,
     policy: {
-      maxPerTx,
-      maxDaily,
-      maxPerAgentDaily,
-      approvalAbove,
+      maxPerTx: Number(input.maxPerTx),
+      maxDaily: Number(input.maxDaily),
+      maxPerAgentDaily: Number(input.maxPerAgentDaily),
+      approvalAbove: Number(input.approvalAbove),
+      maxPerTxExact: yoctoToDecimal(maxTx),
+      maxDailyExact: yoctoToDecimal(daily),
+      maxPerAgentDailyExact: yoctoToDecimal(agentDaily),
+      approvalAboveExact: yoctoToDecimal(approval),
       allowedContracts,
       allowedMethods: splitList(input.methods),
       restrictedMethods,
@@ -76,10 +92,10 @@ export function buildPolicy(input: PolicyInput): BuildResult {
 
 export function policyToInput(p: Policy): PolicyInput {
   return {
-    maxPerTx: String(p.maxPerTx),
-    maxDaily: String(p.maxDaily),
-    maxPerAgentDaily: String(p.maxPerAgentDaily),
-    approvalAbove: String(p.approvalAbove),
+    maxPerTx: p.maxPerTxExact ?? String(p.maxPerTx),
+    maxDaily: p.maxDailyExact ?? String(p.maxDaily),
+    maxPerAgentDaily: p.maxPerAgentDailyExact ?? String(p.maxPerAgentDaily),
+    approvalAbove: p.approvalAboveExact ?? String(p.approvalAbove),
     contracts: p.allowedContracts.join(', '),
     methods: p.allowedMethods.join(', '),
     restricted: p.restrictedMethods.join(', '),

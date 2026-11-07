@@ -7,7 +7,7 @@ import { decide, mayRequestSignature } from '../policy/decide'
 import type { ScanResult } from '../scanner/risk'
 import { decideAndLog } from '../log/decided'
 import { addEvent } from '../log/store'
-import { addSent } from './session'
+import { addSentExact } from './session'
 import { actionCreators } from '@near-js/transactions'
 
 const EXPLORER = 'https://testnet.nearblocks.io'
@@ -66,7 +66,7 @@ export function SendCard({ account }: { account: string }) {
     const to = receiver.trim()
     const result = decideAndLog(
       'Send NEAR',
-      { agentId: 'you', receiver: to, amount: Number(amount) },
+      { agentId: 'you', receiver: to, amount: Number(amount), amountText: amount.trim() },
       'verdict',
       `Review: ${amount.trim()} NEAR to ${to}`,
     )
@@ -85,6 +85,7 @@ export function SendCard({ account }: { account: string }) {
       agentId: 'you',
       receiver: review.receiver,
       amount: Number(review.amountText),
+      amountText: review.amountText,
     })
     if (!mayRequestSignature(fresh.verdict, agreed)) {
       setMessage('The policy does not allow this transfer right now. Review it again.')
@@ -107,7 +108,7 @@ export function SendCard({ account }: { account: string }) {
         ],
       })
       const outcome = readResult(res)
-      if (countsAsSpent(outcome.state)) addSent(Number(r.amountText))
+      if (countsAsSpent(outcome.state)) addSentExact(r.amountText)
       addEvent({
         source: 'Send NEAR',
         summary: `${r.amountText} NEAR to ${r.receiver}`,

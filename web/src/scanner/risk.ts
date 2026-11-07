@@ -1,5 +1,6 @@
 import { evaluate } from '../policy/engine.ts'
 import type { Policy, Result, TxRequest, Usage } from '../policy/types'
+import { decimalToYocto } from '../policy/amount.ts'
 
 export type Level = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 
@@ -54,7 +55,9 @@ export function scan(
     }
   }
 
-  if (Number.isFinite(tx.amount) && tx.amount >= policy.maxPerTx * 0.8) {
+  const amount = decimalToYocto(tx.amountText ?? tx.amount)
+  const maxPerTx = decimalToYocto(policy.maxPerTxExact ?? policy.maxPerTx)
+  if (amount !== null && maxPerTx !== null && amount * 10n >= maxPerTx * 8n) {
     add(10, 'The amount is close to or above your per-transaction limit.')
   }
 

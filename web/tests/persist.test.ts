@@ -8,7 +8,7 @@ import { getAgents, parseAgents, reloadAgents, setAgents } from '../src/agents/s
 import {
   defaultPolicy, getActivePolicy, parsePolicy, reloadPolicy, setActivePolicy,
 } from '../src/policy/active.ts'
-import { addSent, getSentTotal, parseSent } from '../src/send/session.ts'
+import { addSent, addSentExact, getSentTotal, getSentTotalExact, getAgentSentTotalExact, parseSent } from '../src/send/session.ts'
 import type { Agent } from '../src/agents/model.ts'
 
 function fakeStorage(initial: Record<string, string> = {}) {
@@ -164,4 +164,36 @@ test('a damaged or tampered saved policy falls back to the default', () => {
   assert.equal(parsePolicy({ ...defaultPolicy, allowedContracts: ['Bad Name!'] }), null)
   assert.equal(parsePolicy(null), null)
   assert.ok(parsePolicy(defaultPolicy))
+})
+
+
+test('exact spending preserves 24 decimal places', () => {
+  setBackend(fakeStorage())
+  addSentExact('0.000000000000000000000001', 'a1')
+  assert.equal(getSentTotalExact(), '0.000000000000000000000001')
+  assert.equal(getAgentSentTotalExact('a1'), '0.000000000000000000000001')
+})
+
+test('exact spending persists after restart', () => {
+  const s = fakeStorage()
+  setBackend(s)
+  addSentExact('1.000000000000000000000001', 'a1')
+  addSentExact('0.000000000000000000000002', 'a1')
+
+  const again = fakeStorage(Object.fromEntries(s.map))
+  resetStorageForTests()
+  setBackend(again)
+
+  assert.equal(getSentTotalExact(), '1.000000000000000000000003')
+  assert.equal(getAgentSentTotalExact('a1'), '1.000000000000000000000003')
+})
+
+test('exact spending keeps agent totals separate', () => {
+  setBackend(fakeStorage())
+  addSentExact('1.000000000000000000000001', 'a1')
+  addSentExact('2.000000000000000000000002', 'a2')
+
+  assert.equal(getAgentSentTotalExact('a1'), '1.000000000000000000000001')
+  assert.equal(getAgentSentTotalExact('a2'), '2.000000000000000000000002')
+  assert.equal(getSentTotalExact(), '3.000000000000000000000003')
 })

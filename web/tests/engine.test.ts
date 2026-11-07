@@ -74,3 +74,50 @@ test('block wins over approval, and every decision has a reason', () => {
   assert.equal(r.decision, 'BLOCKED')
   assert.ok(r.reasons.length > 0)
 })
+
+test('exact 24-decimal amount above per-transaction limit is blocked', () => {
+  const exactPolicy = {
+    ...policy,
+    maxPerTx: 1,
+    maxPerTxExact: '1',
+    approvalAbove: 1,
+    approvalAboveExact: '1',
+  }
+
+  const result = evaluate(
+    exactPolicy,
+    true,
+    { ...tx(1), amountText: '1.000000000000000000000001' },
+    none,
+  )
+
+  assert.equal(result.decision, 'BLOCKED')
+})
+
+test('exact 24-decimal amount above daily limit is blocked', () => {
+  const exactPolicy = {
+    ...policy,
+    maxPerTx: 10,
+    maxPerTxExact: '10',
+    maxDaily: 50,
+    maxDailyExact: '50',
+    maxPerAgentDaily: 20,
+    maxPerAgentDailyExact: '20',
+    approvalAbove: 10,
+    approvalAboveExact: '10',
+  }
+
+  const result = evaluate(
+    exactPolicy,
+    true,
+    { ...tx(1), amountText: '1.000000000000000000000001' },
+    {
+      totalToday: 49,
+      agentToday: 0,
+      totalTodayExact: '49',
+      agentTodayExact: '0',
+    },
+  )
+
+  assert.equal(result.decision, 'BLOCKED')
+})

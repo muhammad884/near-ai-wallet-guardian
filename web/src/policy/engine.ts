@@ -1,4 +1,5 @@
 import type { Policy, Result, TxRequest, Usage } from './types'
+import { decimalToYocto, yoctoToDecimal } from './amount.ts'
 
 export function evaluate(
   policy: Policy,
@@ -13,20 +14,36 @@ export function evaluate(
     blocks.push('The agent is disabled.')
   }
 
-  if (!Number.isFinite(tx.amount) || tx.amount < 0) {
-    blocks.push('The amount is not a valid number.')
+  const amount = decimalToYocto(tx.amountText ?? tx.amount)
+  const maxTx = decimalToYocto(policy.maxPerTxExact ?? policy.maxPerTx)
+  const daily = decimalToYocto(policy.maxDailyExact ?? policy.maxDaily)
+  const agentDaily = decimalToYocto(policy.maxPerAgentDailyExact ?? policy.maxPerAgentDaily)
+  const approval = decimalToYocto(policy.approvalAboveExact ?? policy.approvalAbove)
+  const total = decimalToYocto(usage.totalTodayExact ?? usage.totalToday)
+  const agentTotal = decimalToYocto(usage.agentTodayExact ?? usage.agentToday)
+
+  if (
+    amount === null || amount < 0n ||
+    maxTx === null || daily === null ||
+    agentDaily === null || approval === null ||
+    total === null || agentTotal === null
+  ) {
+    blocks.push('The amount or policy limits are invalid.')
   } else {
-    if (tx.amount > policy.maxPerTx) {
-      blocks.push(`Amount ${tx.amount} NEAR is above the per-transaction limit of ${policy.maxPerTx}.`)
+    if (amount > maxTx) {
+      blocks.push(`Amount ${yoctoToDecimal(amount)} NEAR is above the per-transaction limit of ${yoctoToDecimal(maxTx)}.`)
     }
-    if (usage.totalToday + tx.amount > policy.maxDaily) {
-      blocks.push(`This would bring total spending today above the daily limit of ${policy.maxDaily} NEAR.`)
+
+    if (total + amount > daily) {
+      blocks.push(`This would bring total spending today above the daily limit of ${yoctoToDecimal(daily)} NEAR.`)
     }
-    if (usage.agentToday + tx.amount > policy.maxPerAgentDaily) {
-      blocks.push(`This would bring this agent's spending today above its limit of ${policy.maxPerAgentDaily} NEAR.`)
+
+    if (agentTotal + amount > agentDaily) {
+      blocks.push(`This would bring this agent's spending today above its limit of ${yoctoToDecimal(agentDaily)} NEAR.`)
     }
-    if (tx.amount > policy.approvalAbove) {
-      approvals.push(`Amount ${tx.amount} NEAR is above ${policy.approvalAbove} NEAR, so the owner must approve it.`)
+
+    if (amount > approval) {
+      approvals.push(`Amount ${yoctoToDecimal(amount)} NEAR is above ${yoctoToDecimal(approval)} NEAR, so the owner must approve it.`)
     }
   }
 
@@ -34,9 +51,11 @@ export function evaluate(
     if (policy.restrictedMethods.includes(tx.method)) {
       blocks.push(`The method "${tx.method}" is restricted.`)
     }
+
     if (!policy.allowedContracts.includes(tx.receiver)) {
       blocks.push(`The contract "${tx.receiver}" is not on the allowed list.`)
     }
+
     if (!policy.allowedMethods.includes(tx.method)) {
       blocks.push(`The method "${tx.method}" is not on the allowed list.`)
     }
@@ -45,8 +64,10 @@ export function evaluate(
   if (blocks.length > 0) {
     return { decision: 'BLOCKED', reasons: blocks }
   }
+
   if (approvals.length > 0) {
     return { decision: 'REQUIRES_APPROVAL', reasons: approvals }
   }
+
   return { decision: 'APPROVED', reasons: ['All policy checks passed.'] }
 }

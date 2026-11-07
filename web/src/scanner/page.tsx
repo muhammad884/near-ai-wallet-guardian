@@ -21,6 +21,7 @@ export function Scanner() {
       agentId: 'demo-agent',
       receiver: receiver.trim(),
       amount: Number(amount),
+      amountText: amount.trim(),
       method: method.trim() || undefined,
       args: args.trim() || undefined,
     }
