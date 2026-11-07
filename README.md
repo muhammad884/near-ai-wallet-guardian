@@ -23,7 +23,7 @@ This is a work in progress. This table is the honest state of every part.
 |---|---|
 | Policy engine (limits, allowed contracts and methods) | Works. Plain code with automated tests. The Spending Limits page lets you edit the policy; it is saved in this browser and used by the Scanner, Spending Limits and Send NEAR. Decisions are app-level only. |
 | Transaction Scanner | Works. Rule-based code with automated tests; it reads nothing from the blockchain. An optional Gemini opinion is shown separately. |
-| Scam Detector | Works. Rules on the spelling of an account name, with automated tests; it reads nothing from the blockchain and cannot prove an account is safe or a scam. An optional Gemini opinion is shown separately. |
+| Scam Detector | Works. Name-based rules assess account spelling only. Separately, the page checks NEAR Mainnet and Testnet RPC data and displays NearBlocks indexed transaction, contract and deployment records. These checks do not prove an account is safe or malicious. An optional Gemini opinion is shown separately. |
 | Gemini second opinion | Optional and advisory only. It needs GEMINI_API_KEY on the server; without it the pages say Gemini was not used. On 2026-11-05 the author checked by hand with a real key that a Gemini answer is shown for an account and for a transaction, that a blocked verdict stays blocked, and that the key string does not appear in the served JavaScript. Automated tests use a fake Gemini. |
 | AI Agents page | Works. Profiles are saved in this browser. They are saved settings only: they do not run, do not control any AI agent and do not send transactions. |
 | Activity History and Security Alerts | Works. Saved in this browser (up to 200 records) and restored on reload. Not stored on the blockchain or in the cloud. |
@@ -67,22 +67,26 @@ Source for the first three rows: the NEAR access keys documentation (docs.near.o
 
 The app lives in the `web` folder (React, TypeScript, Vite). We developed it on Node v26; the tests rely on Node running TypeScript files directly.
 
-    cd web
-    npm install
-    npm run dev
+```bash
+cd web
+npm install
+npm run dev
+```
 
 Build and tests:
 
-    npm run build
-    node --test tests/*.test.ts
+```bash
+npm run build
+node --test tests/*.test.ts
+```
 
 `npm run dev` serves only the front end. The Gemini button needs the server function in `web/api/analyze.js`, which runs on Vercel, so locally it reports that Gemini was not used.
 
-Environment variables: see `.env.example`. The front end reads none. The server function can read `GEMINI_API_KEY` and `GEMINI_MODEL`, which are set only in the Vercel project settings and are never committed. The app never asks for a seed phrase or a private key.
+Environment variables: see `.env.example`. The front end reads none. The server function reads `GEMINI_API_KEY` and can optionally read `GEMINI_MODEL`. These server-side settings are never committed. The app never asks for a seed phrase or a private key.
 
 ## Network
 
-Testnet only. Do not use an account that holds real funds.
+Send NEAR transactions are Testnet only. Do not use an account that holds real funds. The Scam Detector also performs read-only checks against NEAR Mainnet and Testnet.
 
 ## How to try it (judges)
 
@@ -103,7 +107,7 @@ Open https://near-ai-wallet-guardian.vercel.app. On a phone, switch the browser 
 - Activity history, agent profiles, the applied policy and the amount sent today are saved in this browser (localStorage). That is specific to one browser on one device. It is not cloud or blockchain storage, and clearing the browser data removes it. The amount sent today is counted in UTC days and only for transfers sent with Send NEAR.
 - Send NEAR counts a transfer as spent unless the wallet reports a failure, so a result we cannot read still counts toward the daily limit.
 - Allowed contracts and methods are checked only when a method is given (a contract call). A plain NEAR transfer is limited by the amount rules only.
-- The Scanner and the scam rules look only at what you type. They do not read the blockchain, and a low score does not prove anything is safe.
+- The Transaction Scanner rules assess the transaction details entered and do not read blockchain data. The Scam Detector name-based score assesses account spelling only; separate Mainnet and Testnet RPC checks and NearBlocks records are displayed as evidence. A low score does not prove an account is safe.
 - Agent profiles are saved settings only. They are not connected to any running agent.
 - Gemini: free-tier quotas can run out, Google may use free-tier content to improve its products, and the endpoint's abuse limits are best effort (see the Gemini section).
 - npm audit still reports low-severity findings (see Dependency audit).
@@ -121,7 +125,7 @@ The Transaction Scanner and the Scam Detector have a button: Ask Gemini for a se
 
 Free tier notes:
 
-- It uses a Gemini model on the free tier (default `gemini-2.5-flash-lite`, changeable with the server variable `GEMINI_MODEL`). Free-tier limits vary by model, apply per project and are shown in Google AI Studio. We did not copy numbers here because they change.
+- It uses Gemini on the free tier. The default primary model is `gemini-3.6-flash`; `gemini-3.5-flash-lite` is the fallback for retryable failures. The primary model can be overridden with the server variable `GEMINI_MODEL`. Free-tier limits vary by model, apply per project and are shown in Google AI Studio. We did not copy numbers here because they change.
 - On the free tier Google may use the content it receives to improve its products. Only data of the kind listed above is sent, and the app is testnet only. Check the Google terms for your region.
 
 Setup for maintainers:
@@ -168,6 +172,8 @@ Hackathon window: every commit in this repository is from 31 October 2026 or lat
 
 MIT
 
-## On-chain account check (testnet)
+## On-chain account checks (Mainnet and Testnet)
 
-The Scam Detector also asks the NEAR testnet RPC (`view_account`) whether the account exists, what its balance is, and whether a contract is deployed. These facts are shown next to the rule result. They do not change the score and do not prove an account is safe. If the RPC cannot be reached, the app says so and concludes nothing. Mainnet is not checked. The "account found" and "account not found" cases were checked by hand on a Vercel Preview with real testnet RPC. The RPC-failure case is covered by unit tests with mocked responses.
+The Scam Detector queries both NEAR Mainnet and Testnet RPC endpoints using `view_account`. It displays whether the account exists, its balance, and whether a smart contract is deployed on each network. These facts are shown separately from the name-based rule result and do not change its score or prove that an account is safe or malicious. If an RPC cannot be reached, the app reports the failure and makes no conclusion about that network. RPC failure handling is covered by unit tests with mocked responses.
+
+NearBlocks separately provides indexed transaction, contract, and deployment data for both networks. These records are limited to the data returned by the provider and are not a complete security audit.

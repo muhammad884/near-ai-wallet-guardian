@@ -18,7 +18,7 @@ const config = {
 function Inner() {
   const { signedAccountId, signIn, signOut, walletSelector } = useWalletSelector()
   useEffect(() => {
-    if (signedAccountId) setWalletAccount(signedAccountId)
+    setWalletAccount(signedAccountId || null)
   }, [signedAccountId])
 
   const accountRef = useRef(signedAccountId)

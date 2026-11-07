@@ -59,7 +59,7 @@ test('near in the name without a .near ending adds 10 points', () => {
 
 test('the report always lists what was not checked', () => {
   const r = analyze('some.near')
-  assert.equal(r.notChecked.length, 5)
+  assert.equal(r.notChecked.length, 4)
   assert.ok(r.confidence.startsWith('Low'))
 })
 
