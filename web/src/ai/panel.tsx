@@ -17,11 +17,18 @@ function List({ title, items }: { title: string; items: string[] }) {
 type Props = {
   outcome: AiOutcome | null
   loading: boolean
+  waitingForEvidence?: boolean
   onAsk: () => void
   policyVerdict: Decision | null
 }
 
-export function AiPanel({ outcome, loading, onAsk, policyVerdict }: Props) {
+export function AiPanel({
+  outcome,
+  loading,
+  waitingForEvidence = false,
+  onAsk,
+  policyVerdict,
+}: Props) {
   const caution = outcome ? aiCaution(policyVerdict, outcome) : null
   const a = outcome && outcome.state === 'GEMINI' ? outcome.analysis : null
   const tone = !a ? '' : a.riskLevel === 'LOW' ? 'neutral' : a.riskLevel === 'MEDIUM' ? 'mid' : 'bad'
@@ -34,9 +41,20 @@ export function AiPanel({ outcome, loading, onAsk, policyVerdict }: Props) {
         improve its products. Never include secrets. Gemini cannot approve, block,
         sign or send anything, and it cannot change the decision above.
       </p>
-      <button className="btn" onClick={onAsk} disabled={loading}>
-        {loading ? 'Asking Gemini...' : 'Ask Gemini for a second opinion'}
+      <button
+        className="btn"
+        onClick={onAsk}
+        disabled={loading || waitingForEvidence}
+      >
+        {waitingForEvidence
+          ? 'Waiting for blockchain data...'
+          : loading
+            ? 'Asking Gemini...'
+            : 'Ask Gemini for a second opinion'}
       </button>
+      {waitingForEvidence && (
+        <p className="muted">Waiting for the available blockchain evidence before sending the request to Gemini.</p>
+      )}
       {outcome && outcome.state === 'UNAVAILABLE' && (
         <div>
           <div className="row">

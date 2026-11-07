@@ -1,5 +1,22 @@
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 
+export type AccountEvidence = {
+  network: 'mainnet' | 'testnet'
+  transactionsStatus: number
+  contractStatus: number
+  deploymentsStatus: number
+  transactionsReturned: number
+  successful: number
+  failed: number
+  unknownStatus: number
+  uniqueCounterparties: number
+  methods: string[]
+  earliestTimestamp: string
+  latestTimestamp: string
+  contractRecords: number
+  deploymentRecords: number
+}
+
 export type Analysis = {
   riskScore: number
   riskLevel: RiskLevel
@@ -17,7 +34,7 @@ export type AiOutcome =
   | { state: 'UNAVAILABLE'; reason: string; message: string }
 
 export type AiRequest =
-  | { kind: 'account'; account: string }
+  | { kind: 'account'; account: string; evidence?: AccountEvidence[] }
   | {
       kind: 'transaction'
       tx: { receiver: string; amount: number; method?: string; args?: string }

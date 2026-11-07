@@ -3,7 +3,7 @@ import { analyze } from './rules'
 import type { ScamReport } from './rules'
 import { addEvent } from '../log/store'
 import { askGemini } from '../ai/client'
-import type { AiOutcome } from '../ai/client'
+import type { AccountEvidence, AiOutcome } from '../ai/client'
 import { AiPanel } from '../ai/panel'
 import { lookupBothNetworks } from '../chain/account'
 import type { AccountOutcome } from '../chain/account'
@@ -51,6 +51,88 @@ function formatNearBlocksTimestamp(value: unknown): string {
   } catch {
     return 'Unavailable'
   }
+}
+
+
+function summarizeNearBlocksEvidence(
+  items: NearBlocksAccountData[],
+  account: string,
+): AccountEvidence[] {
+  return items.map((item) => {
+    const txRows = getNearBlocksRows(item.transactions.data)
+    const contractRows = getNearBlocksRows(item.contract.data)
+    const deploymentRows = getNearBlocksRows(item.deployments.data)
+
+    let successful = 0
+    let failed = 0
+    let unknownStatus = 0
+    const counterparties = new Set<string>()
+    const methods = new Set<string>()
+    const timestamps: string[] = []
+
+    for (const tx of txRows) {
+      const outcomes =
+        tx.outcomes && typeof tx.outcomes === 'object'
+          ? (tx.outcomes as NearBlocksRow)
+          : {}
+
+      if (outcomes.status === true) successful++
+      else if (outcomes.status === false) failed++
+      else unknownStatus++
+
+      for (const field of ['signer_account_id', 'receiver_account_id']) {
+        const value = readNearBlocksText(tx[field])
+        if (value && value !== account) counterparties.add(value)
+      }
+
+      if (Array.isArray(tx.actions)) {
+        for (const action of tx.actions) {
+          if (!action || typeof action !== 'object') continue
+          const row = action as NearBlocksRow
+          const method = readNearBlocksText(row.method ?? row.action)
+          if (method && /^[A-Za-z0-9_.:-]+$/.test(method)) {
+            methods.add(method)
+          }
+        }
+      }
+
+      const block =
+        tx.block && typeof tx.block === 'object'
+          ? (tx.block as NearBlocksRow)
+          : {}
+      const timestamp = readNearBlocksText(
+        tx.block_timestamp ?? block.block_timestamp,
+      )
+      if (/^\d+$/.test(timestamp)) timestamps.push(timestamp)
+    }
+
+    timestamps.sort((a, b) => {
+      const x = BigInt(a)
+      const y = BigInt(b)
+      return x < y ? -1 : x > y ? 1 : 0
+    })
+
+    return {
+      network: item.network,
+      transactionsStatus: item.transactions.status,
+      contractStatus: item.contract.status,
+      deploymentsStatus: item.deployments.status,
+      transactionsReturned: txRows.length,
+      successful,
+      failed,
+      unknownStatus,
+      uniqueCounterparties: counterparties.size,
+      methods: [...methods].slice(0, 8),
+      earliestTimestamp: timestamps.length
+        ? formatNearBlocksTimestamp(timestamps[0])
+        : 'Unavailable',
+      latestTimestamp: timestamps.length
+        ? formatNearBlocksTimestamp(timestamps[timestamps.length - 1])
+        : 'Unavailable',
+      contractRecords: contractRows.length,
+      deploymentRecords: deploymentRows.length,
+    }
+  })
 }
 
 export function ScamDetector() {
@@ -114,13 +196,30 @@ export function ScamDetector() {
   }
 
   async function askAi() {
-    if (!report || report.level === 'INVALID' || aiLoading) return
+    if (
+      !report ||
+      report.level === 'INVALID' ||
+      aiLoading ||
+      indexedLoading
+    ) return
+
     const target = report.account
+    const evidence = indexed
+      ? summarizeNearBlocksEvidence(indexed, target)
+      : []
+
     setAiLoading(true)
     setAi(null)
-    const out = await askGemini({ kind: 'account', account: target })
-    if (latest.current === target) setAi(out)
-    setAiLoading(false)
+    try {
+      const out = await askGemini({
+        kind: 'account',
+        account: target,
+        evidence,
+      })
+      if (latest.current === target) setAi(out)
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   const cls =
@@ -378,7 +477,7 @@ export function ScamDetector() {
       )}
 
       {report && report.level !== 'INVALID' && (
-        <AiPanel outcome={ai} loading={aiLoading} onAsk={askAi} policyVerdict={null} />
+        <AiPanel outcome={ai} loading={aiLoading} waitingForEvidence={indexedLoading} onAsk={askAi} policyVerdict={null} />
       )}
     </div>
   )
