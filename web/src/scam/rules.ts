@@ -71,7 +71,9 @@ function collect(account: string): Signal[] {
 
     const nearSuffixImpersonation =
       candidateBase === knownBase + '-near' ||
-      candidateBase === knownBase + '_near'
+      candidateBase === knownBase + '_near' ||
+      candidateBase.endsWith('-' + knownBase + '-near') ||
+      candidateBase.endsWith('_' + knownBase + '_near')
 
     if (nearSuffixImpersonation) {
       add(
