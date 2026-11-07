@@ -1,8 +1,33 @@
 # AI Wallet Guardian
 
-A security check for people who let AI agents work with their NEAR account. It sits between a user, their agents and their transactions. Built for the NEAR hackathon, AI Security & Defense track.
+A security check for people who let AI agents work with their NEAR account. It sits between the user, their agents and their transactions, and gives every transaction a clear verdict with reasons. Built for the NEAR hackathon, AI Security & Defense track.
 
 **Live demo:** https://near-ai-wallet-guardian.vercel.app (NEAR testnet only). On a phone, switch the browser to Desktop site to see the wallet list.
+
+## In 30 seconds
+
+- **Policy engine:** per-transaction, daily and per-agent limits, plus allowed contracts and methods. Verdict: APPROVED, REQUIRES_APPROVAL or BLOCKED, with reasons.
+- **Transaction Scanner:** a 0-100 risk score from visible rules (`add_full_access_key` scores 90/100 CRITICAL).
+- **Scam Detector:** flags lookalike account names (`wrap.neer` vs `wrap.near`) and shows on-chain evidence from NEAR RPC and NearBlocks.
+- **Gemini second opinion (optional):** advisory only. It can never approve, block or change a verdict.
+- **Send NEAR (testnet):** review, see the verdict, then approve in your wallet. A blocked transfer never opens the wallet.
+
+## Try it in 2 minutes
+
+1. Open the live demo, go to Spending Limits, and check amounts 2, 7 and 40 to see APPROVED, REQUIRES_APPROVAL and BLOCKED.
+2. Go to Transaction Scanner, enter method `add_full_access_key`, and press Scan.
+3. Go to Scam Detector, and check `wrap.neer` and then `wrap.near`.
+
+The full walkthrough is in "How to try it (judges)" below.
+
+## Honest status
+
+- Works and tested: policy engine, scanner, scam detector, Send NEAR on testnet (128 automated tests, plus manual testnet checks).
+- App-level only: all rules run in your browser. Nothing is enforced on the NEAR blockchain yet.
+- Not built yet: function-call key creation and on-chain spending contracts (see the roadmap).
+- AI Agent profiles are saved settings only. They do not run an agent.
+
+Full details follow below.
 
 ## What it does
 
