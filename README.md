@@ -11,19 +11,21 @@ A security check for people who let AI agents work with their NEAR account. It s
 - **Scam Detector:** flags lookalike account names (`wrap.neer` vs `wrap.near`) and shows on-chain evidence from NEAR RPC and NearBlocks.
 - **Gemini second opinion (optional):** advisory only. It can never approve, block or change a verdict.
 - **Send NEAR (testnet):** review, see the verdict, then approve in your wallet. A blocked transfer never opens the wallet.
+- **Agent key (testnet):** create and revoke a real function-call key limited to one contract and named methods. The NEAR protocol itself enforces that limit.
 
 ## Try it in 2 minutes
 
 1. Open the live demo, go to Spending Limits, and check amounts 2, 7 and 40 to see APPROVED, REQUIRES_APPROVAL and BLOCKED.
 2. Go to Transaction Scanner, enter method `add_full_access_key`, and press Scan.
 3. Go to Scam Detector, and check `wrap.neer` and then `wrap.near`.
+4. Go to Wallet Security, connect a testnet wallet, press Create agent key, then Revoke this key. The key list reads the live testnet RPC.
 
 The full walkthrough is in "How to try it (judges)" below.
 
 ## Honest status
 
-- Works and tested: policy engine, scanner, scam detector, Send NEAR on testnet (128 automated tests, plus manual testnet checks).
-- App-level only: all rules run in your browser. Nothing is enforced on the NEAR blockchain yet.
+- Works and tested: policy engine, scanner, scam detector (128 automated tests); Send NEAR and agent key create/revoke on testnet (checked by hand).
+- App-level only: spending limits, risk scores and verdicts run in your browser. The one thing enforced on chain is the function-call key limit (one contract, named methods), which NEAR itself enforces.
 - Built and checked by hand on testnet: creating and revoking a function-call key (Agent key section).
 - Not built yet: on-chain spending contracts for NEAR amount limits (see the roadmap).
 - AI Agent profiles are saved settings only. They do not run an agent.
