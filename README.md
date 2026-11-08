@@ -11,20 +11,20 @@ A security check for people who let AI agents work with their NEAR account. It s
 - **Scam Detector:** flags lookalike account names (`wrap.neer` vs `wrap.near`) and shows on-chain evidence from NEAR RPC and NearBlocks.
 - **Gemini second opinion (optional):** advisory only. It can never approve, block or change a verdict.
 - **Send NEAR (testnet):** review, see the verdict, then approve in your wallet. A blocked transfer never opens the wallet.
-- **Agent key (testnet):** create and revoke a real function-call key limited to one contract and named methods. The NEAR protocol itself enforces that limit.
+- **Agent key (testnet):** create and revoke a real function-call key limited to one contract and named methods. Two test buttons show NEAR accepting an allowed call and rejecting a transfer. The NEAR protocol itself enforces that limit.
 
 ## Try it in 2 minutes
 
 1. Open the live demo, go to Spending Limits, and check amounts 2, 7 and 40 to see APPROVED, REQUIRES_APPROVAL and BLOCKED.
 2. Go to Transaction Scanner, enter method `add_full_access_key`, and press Scan.
 3. Go to Scam Detector, and check `wrap.neer` and then `wrap.near`.
-4. Go to Wallet Security, connect a testnet wallet, press Create agent key, then Revoke this key. The key list reads the live testnet RPC.
+4. Go to Wallet Security, connect a testnet wallet, press Create agent key, press the blue button (allowed call, accepted) and the red button (transfer, rejected by NEAR), then press Revoke this key. The key list reads the live testnet RPC.
 
 The full walkthrough is in "How to try it (judges)" below.
 
 ## Honest status
 
-- Works and tested: policy engine, scanner, scam detector (128 automated tests); Send NEAR and agent key create/revoke on testnet (checked by hand).
+- Works and tested: policy engine, scanner, scam detector (128 automated tests); Send NEAR, agent key create/revoke and the accept/reject test on testnet (checked by hand).
 - App-level only: spending limits, risk scores and verdicts run in your browser. The one thing enforced on chain is the function-call key limit (one contract, named methods), which NEAR itself enforces.
 - Built and checked by hand on testnet: creating and revoking a function-call key (Agent key section).
 - Not built yet: on-chain spending contracts for NEAR amount limits (see the roadmap).
@@ -188,9 +188,9 @@ Source for the first three rows: the NEAR access keys documentation (docs.near.o
 
 On the Wallet Security page, the Agent key section creates a function-call key limited to one contract and named methods, with a 0.25 NEAR gas allowance, and lists and revokes function-call keys on the connected account.
 
-Checked by hand on testnet with Meteor Wallet on 8 November 2026: we created a key for guest-book.testnet (add_message), saw it in the live key list as a function-call key, revoked it, and saw the count return to 0 while the full-access key stayed untouched.
+Checked by hand on testnet with Meteor Wallet on 8 November 2026: we created a key for hello.near-examples.testnet (set_greeting) and saw it in the live key list as a function-call key. With that key, the agent signed a set_greeting call on its own and NEAR accepted it. The same key then tried to send 0.01 NEAR and NEAR rejected it with InvalidAccessKeyError RequiresFullAccess. Earlier runs also revoked keys, and the function-call key count returned to 0 while the full-access key stayed untouched.
 
-- The private half of the demo key is discarded at creation, so this key cannot sign anything. It shows the permission model, not a running agent.
+- The private half of each demo key stays in the browser tab only and is lost on refresh. It is never saved or sent anywhere. The two test buttons sign with it directly, without the wallet, so the accept and reject results come from NEAR itself, not from this app. This tests the permission. It is not a running autonomous agent.
 - An empty method list is refused, because it would allow every method.
 - The app never creates a full-access key and never offers to remove one.
 - Limits on how much NEAR can move are still not enforced on chain. That would need a smart contract of our own, which we have not built.
