@@ -24,7 +24,8 @@ The full walkthrough is in "How to try it (judges)" below.
 
 - Works and tested: policy engine, scanner, scam detector, Send NEAR on testnet (128 automated tests, plus manual testnet checks).
 - App-level only: all rules run in your browser. Nothing is enforced on the NEAR blockchain yet.
-- Not built yet: function-call key creation and on-chain spending contracts (see the roadmap).
+- Built and checked by hand on testnet: creating and revoking a function-call key (Agent key section).
+- Not built yet: on-chain spending contracts for NEAR amount limits (see the roadmap).
 - AI Agent profiles are saved settings only. They do not run an agent.
 
 Full details follow below.
@@ -54,10 +55,10 @@ This is a work in progress. This table is the honest state of every part.
 | Activity History and Security Alerts | Works. Saved in this browser (up to 200 records) and restored on reload. Not stored on the blockchain or in the cloud. |
 | Wallet page (Meteor Wallet, testnet) | Sign-in and sign-out checked by hand on testnet with Meteor Wallet, using the browser's Desktop site setting. Shows the account ID and a read-only list of the account's access keys from the testnet RPC. In the normal phone layout the wallet list is hidden (see Known issues). |
 | Dashboard | Counts from the decisions saved in this browser, the number of enabled agent profiles, and the wallet status as last seen on Wallet Security. |
-| Permissions | Explains who enforces each rule. Creates and changes no keys. |
+| Permissions | Explains who enforces each rule. Key changes happen only in the Agent key section on Wallet Security. |
 | Send NEAR (testnet) | Checked by hand on testnet: input errors, a blocked review (the wallet is never asked), an approval-needed review (Send stays disabled until you tick the box), one real 0.01 NEAR transfer and a refused wallet request (nothing was sent). Unit tests cover the checks and the result reader. A transfer the policy blocks never reaches the wallet, but anyone can still send directly from their wallet. |
 | Settings | Light or dark theme and clearing the decision history. |
-| On-chain enforcement | Not built yet. See below. |
+| On-chain enforcement | Partly. Function-call keys (one contract, named methods) are created and revoked on testnet and enforced by NEAR itself. NEAR amount limits are not enforced on chain. See below. |
 
 ## Manual Testing & Production Verification
 
@@ -100,7 +101,7 @@ The deployed application was manually reviewed by the author in a browser using 
 - The `wrap.near` review showed 10 sampled successful Mainnet transactions and 10 sampled failed Testnet transactions. These are samples, not complete account histories. Failed Testnet transactions do not prove malicious activity.
 - The Gemini result for `wrap.near` was 15/100, LOW risk, with MEDIUM confidence. It was advisory only and did not establish that the account or contract is safe.
 - AI Agent profiles are saved settings only. They do not run an autonomous agent or control a wallet key.
-- Permissions were reviewed as explanatory information. The app does not create, add, or revoke Function-call Keys.
+- Permissions were reviewed as explanatory information. The Permissions page only explains; function-call keys are created and revoked in the Agent key section on Wallet Security.
 
 ## Feature Roadmap
 
@@ -121,7 +122,7 @@ The roadmap separates existing app features from work that has not yet been impl
 ### Phase 2 — NEAR protocol-level key protection
 <badge color="warning">Planned — not implemented</badge>
 
-- Design a safe Function-call Key creation and management flow.
+- Function-call key creation and revoke: done for a demo key on testnet (Agent key section). Next: tie keys to saved agent profiles.
 - Restrict agent keys to one approved contract and permitted methods.
 - Avoid giving agents Full-Access Keys.
 - Test key permissions, allowance handling, revocation and failure cases.
@@ -162,24 +163,35 @@ What the official NEAR docs say about access keys:
 - A function-call key cannot attach NEAR to a call.
 - A full-access key has complete control of the account. Never give one to an agent.
 
-Plan (not built yet):
+Plan (step 1 now exists as the Agent key section, step 2 is not built):
 
 1. Give each agent a function-call key limited to one contract and a list of methods, never a full-access key. This restriction is enforced by the NEAR protocol itself.
 2. Limits on how much NEAR can move cannot be enforced by that key alone. That would need a smart contract of our own. We have not designed, written or verified one, and nothing in this repository claims it.
 
 ### Enforced by NEAR vs shown by this app
 
-This app does not create, add or remove any access keys today. The table shows who would enforce each rule.
+This app can create and revoke one kind of key: a function-call key limited to one contract and named methods (Agent key section, testnet). It never creates a full-access key and never offers to remove one. The table shows who would enforce each rule.
 
 | Rule | Who enforces it |
 |---|---|
-| An agent can call only one contract | The NEAR protocol, if the agent holds a function-call key. Not built in this app yet. |
+| An agent can call only one contract | The NEAR protocol, if the agent holds a function-call key. The Agent key section creates and revokes such a key on testnet (checked by hand). |
 | An agent can call only listed methods | The NEAR protocol, same condition. |
 | An agent cannot attach NEAR to a call | The NEAR protocol, same condition. |
 | Per-transaction and daily NEAR limits | This app only. It shows a decision and does not stop anything on chain. |
 | Risk scores and scam signals | This app only. Advice, not proof. |
 
 Source for the first three rows: the NEAR access keys documentation (docs.near.org, Access Keys page). Whether a contract of our own is needed to enforce NEAR limits is our own design idea, not something the documentation states.
+
+## Agent key (testnet): a real key, enforced by NEAR
+
+On the Wallet Security page, the Agent key section creates a function-call key limited to one contract and named methods, with a 0.25 NEAR gas allowance, and lists and revokes function-call keys on the connected account.
+
+Checked by hand on testnet with Meteor Wallet on 8 November 2026: we created a key for guest-book.testnet (add_message), saw it in the live key list as a function-call key, revoked it, and saw the count return to 0 while the full-access key stayed untouched.
+
+- The private half of the demo key is discarded at creation, so this key cannot sign anything. It shows the permission model, not a running agent.
+- An empty method list is refused, because it would allow every method.
+- The app never creates a full-access key and never offers to remove one.
+- Limits on how much NEAR can move are still not enforced on chain. That would need a smart contract of our own, which we have not built.
 
 ## Run it
 

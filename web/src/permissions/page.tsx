@@ -15,7 +15,7 @@ export function Permissions() {
         <div className="row"><span>Attach NEAR to a call</span><strong className="ok">Not allowed</strong></div>
         <p className="muted">
           This holds only if the agent is given a function-call key. This
-          app does not create or manage keys yet.
+          app creates and revokes only function-call keys (Agent key section on Wallet Security).
         </p>
       </div>
 
