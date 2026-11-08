@@ -89,7 +89,7 @@ export function KeyAuditCard({ account }: { account: string }) {
           </div>
         )}
         <p className="muted" style={{ fontSize: 14 }}>
-          Read-only. This app does not add, remove or change any key. Your
+          Read-only. Only the Agent key section below can add or remove a function-call key, and it never touches a full-access key. Your
           own full-access key is normal. The risk is giving one to an agent.
         </p>
       </div>
