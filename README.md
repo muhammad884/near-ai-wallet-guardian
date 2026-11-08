@@ -157,7 +157,7 @@ Roadmap items are proposals, not completed features or guarantees. Their impleme
 
 ## About enforcement (read this)
 
-Today every rule in this app is applied by code running in your browser. The app can show APPROVED, REQUIRES_APPROVAL or BLOCKED, but it does not stop anything on the NEAR blockchain. Removing an agent in the app does not revoke any key on chain. The app does not claim otherwise.
+Today the spending limits, risk scores and verdicts in this app are applied by code running in your browser. The app can show APPROVED, REQUIRES_APPROVAL or BLOCKED, but it does not stop anything on the NEAR blockchain. Removing an agent profile in the app does not revoke a key on chain; keys are revoked separately in the Agent key section. The app does not claim otherwise.
 
 What the official NEAR docs say about access keys:
 
