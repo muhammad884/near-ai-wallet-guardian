@@ -14,7 +14,7 @@ import { baseDecode } from '@near-js/utils'
 const RPC = 'https://rpc.testnet.near.org'
 const ALLOWANCE = BigInt('250000000000000000000000') // 0.25 NEAR for gas
 const GAS = BigInt('30000000000000')
-const ONE_NEAR = BigInt('1000000000000000000000000')
+const ONE_NEAR = BigInt('10000000000000000000000')
 const ZERO = BigInt(0)
 
 type FcKey = { publicKey: string; receiver: string; methods: string[] }
@@ -134,8 +134,8 @@ const btn = {
 
 export function AgentKeyCard() {
   const { signedAccountId, signAndSendTransactions } = useWalletSelector()
-  const [receiver, setReceiver] = useState('guest-book.testnet')
-  const [methods, setMethods] = useState('add_message')
+  const [receiver, setReceiver] = useState('hello.near-examples.testnet')
+  const [methods, setMethods] = useState('set_greeting')
   const [keys, setKeys] = useState<FcKey[]>([])
   const [agents, setAgents] = useState<Record<string, KeyPair>>({})
   const [msg, setMsg] = useState('')
@@ -242,8 +242,8 @@ export function AgentKeyCard() {
     setBusy(true)
     setProof('Agent is calling ' + k.receiver + '...')
     try {
-      const method = k.methods[0] ?? 'add_message'
-      const args = new TextEncoder().encode(JSON.stringify({ text: 'hello from the agent key' }))
+      const method = k.methods[0] ?? 'set_greeting'
+      const args = new TextEncoder().encode(JSON.stringify(method === 'add_message' ? { text: 'hello from the agent key' } : { greeting: 'Hello from the agent key' }))
       setProof(
         'Agent calls ' + method + ': ' +
           (await agentSend(signedAccountId, kp, k.receiver, [
@@ -261,10 +261,10 @@ export function AgentKeyCard() {
     const kp = agents[k.publicKey]
     if (!kp) return
     setBusy(true)
-    setProof('Agent is trying to send 1 NEAR...')
+    setProof('Agent is trying to send 0.01 NEAR...')
     try {
       setProof(
-        'Agent tries to send 1 NEAR: ' +
+        'Agent tries to send 0.01 NEAR: ' +
           (await agentSend(signedAccountId, kp, 'friend.testnet', [
             actionCreators.transfer(ONE_NEAR),
           ])),
@@ -307,10 +307,10 @@ export function AgentKeyCard() {
           {agents[k.publicKey] ? (
             <>
               <button style={{ ...btn, background: '#2a5db0' }} disabled={busy} onClick={() => testCall(k)}>
-                Agent: call {k.methods[0] ?? 'add_message'}
+                Agent: call {k.methods[0] ?? 'set_greeting'}
               </button>
               <button style={{ ...btn, background: '#b3402f' }} disabled={busy} onClick={() => testSend(k)}>
-                Agent: try to send 1 NEAR
+                Agent: try to send 0.01 NEAR
               </button>
             </>
           ) : (
