@@ -301,7 +301,7 @@ Libraries: React, TypeScript, Vite, react-router-dom, lucide-react, buffer (a br
 
 AI assistance: the code in this repository was written with an AI coding assistant (Claude) and run and tested by the author. At runtime an AI model (Gemini) is used only for the optional advisory opinion; it makes no decisions.
 
-Hackathon window: every commit in this repository is from 31 October 2026 or later. This is a new project and it does not reuse code from the author's other projects.
+Project start: the first commit in this repository is dated 2026-10-31 11:10 UTC, and every commit is after it. The hackathon rules say code written since the announcement counts, and development runs 1 to 14 November 2026. This is a new project and it does not reuse code from the author's other projects.
 
 ## License
 
