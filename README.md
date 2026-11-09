@@ -20,6 +20,8 @@ A security check for people who let AI agents work with their NEAR account. It s
 3. Go to Scam Detector, and check `wrap.neer` and then `wrap.near`.
 4. Go to Wallet Security, connect a testnet wallet, press Create agent key, press the blue button (allowed call, accepted) and the red button (transfer, rejected by NEAR), then press Revoke this key. The key list reads the live testnet RPC.
 
+Steps 1 to 3 need no wallet. Step 4 needs a free NEAR testnet account in Meteor Wallet.
+
 The full walkthrough is in "How to try it (judges)" below.
 
 ## Honest status
@@ -29,6 +31,7 @@ The full walkthrough is in "How to try it (judges)" below.
 - Built and checked by hand on testnet: creating and revoking a function-call key (Agent key section).
 - Not built yet: on-chain spending contracts for NEAR amount limits (see the roadmap).
 - AI Agent profiles are saved settings only. They do not run an agent.
+- Gemini runs on a free tier. If its quota is used up, the app says Gemini was not used and everything else keeps working.
 
 Full details follow below.
 
