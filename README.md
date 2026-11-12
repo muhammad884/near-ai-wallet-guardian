@@ -315,3 +315,11 @@ MIT
 The Scam Detector queries both NEAR Mainnet and Testnet RPC endpoints using `view_account`. It displays whether the account exists, its balance, and whether a smart contract is deployed on each network. These facts are shown separately from the name-based rule result and do not change its score or prove that an account is safe or malicious. If an RPC cannot be reached, the app reports the failure and makes no conclusion about that network. RPC failure handling is covered by unit tests with mocked responses.
 
 NearBlocks separately provides indexed transaction, contract, and deployment data for both networks. These records are limited to the data returned by the provider and are not a complete security audit.
+
+## Another project by the same builder
+
+This builder is entering two independent projects in the NEAR Hackathon, and each README names the other:
+
+- **NEAR SafeOrder**: escrow for online sales on NEAR, paying with NEAR or native USDC (separate repository and separate deployment)
+  - Repository: https://github.com/muhammad884/near-safeorder
+  - Live demo: https://near-safeorder.vercel.app
